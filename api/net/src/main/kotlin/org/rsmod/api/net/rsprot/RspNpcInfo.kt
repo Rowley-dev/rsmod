@@ -40,7 +40,7 @@ class RspNpcInfo(val rspAvatar: NpcAvatar) : NpcInfoProtocol {
     override fun showHeadbar(headbar: Headbar) {
         rspAvatar.extendedInfo.addHeadBar(
             sourceIndex = if (headbar.isNoSource) -1 else headbar.sourceSlot,
-            selfType = headbar.self,
+            sourceType = headbar.self,
             otherType = if (headbar.isPrivate) -1 else headbar.public,
             startFill = headbar.startFill,
             endFill = headbar.endFill,
@@ -52,7 +52,7 @@ class RspNpcInfo(val rspAvatar: NpcAvatar) : NpcInfoProtocol {
     override fun showHitmark(hitmark: Hitmark) {
         rspAvatar.extendedInfo.addHitMark(
             sourceIndex = if (hitmark.isNoSource) -1 else hitmark.sourceSlot,
-            selfType = hitmark.source,
+            sourceType = hitmark.source,
             otherType = if (hitmark.isPrivate) -1 else hitmark.public,
             value = hitmark.damage,
             delay = hitmark.delay,
@@ -60,11 +60,31 @@ class RspNpcInfo(val rspAvatar: NpcAvatar) : NpcInfoProtocol {
     }
 
     override fun toggleOps(ops: OpVisibility) {
-        rspAvatar.extendedInfo.setVisibleOps(ops.packed)
+        rspAvatar.extendedInfo.setVisibleOps(ops.packed.toByte())
     }
 
     override fun setHeadIcon(slot: Int, graphic: Int, index: Int) {
         rspAvatar.extendedInfo.setHeadIconChange(slot, graphic, index)
+    }
+
+    override fun exactMove(
+        deltaX1: Int,
+        deltaZ1: Int,
+        deltaX2: Int,
+        deltaZ2: Int,
+        delay1: Int,
+        delay2: Int,
+        direction: Int,
+    ) {
+        rspAvatar.extendedInfo.setExactMove(
+            deltaX1 = deltaX1,
+            deltaZ1 = deltaZ1,
+            delay1 = delay1,
+            deltaX2 = deltaX2,
+            deltaZ2 = deltaZ2,
+            delay2 = delay2,
+            angle = direction,
+        )
     }
 
     override fun crawl(deltaX: Int, deltaZ: Int) {

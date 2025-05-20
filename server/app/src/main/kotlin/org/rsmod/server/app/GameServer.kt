@@ -23,7 +23,8 @@ import org.rsmod.api.cache.map.GameMapDecoder
 import org.rsmod.api.server.config.ServerConfig
 import org.rsmod.api.type.resolver.TypeCleanup
 import org.rsmod.api.type.resolver.TypeResolver
-import org.rsmod.api.type.updater.TypeUpdater
+import org.rsmod.api.type.updater.TypeUpdaterCacheSync
+import org.rsmod.api.type.updater.TypeUpdaterConfigs
 import org.rsmod.api.type.verifier.TypeVerifier
 import org.rsmod.api.type.verifier.isCacheUpdateRequired
 import org.rsmod.api.type.verifier.isFailure
@@ -32,7 +33,6 @@ import org.rsmod.game.type.TypeListMap
 import org.rsmod.plugin.module.PluginModule
 import org.rsmod.plugin.scripts.PluginScript
 import org.rsmod.plugin.scripts.ScriptContext
-import org.rsmod.scheduler.TaskScheduler
 import org.rsmod.server.install.GameNetworkRsaGenerator
 import org.rsmod.server.install.GameServerCachePacker
 import org.rsmod.server.install.GameServerInstall
@@ -101,18 +101,6 @@ class GameServer(private val skipTypeVerificationOverride: Boolean? = null) :
         loadTypeResolver(injector)
         loadConfig(injector)
         loadScripts(injector)
-        executeScheduledIO(injector)
-    }
-
-    private fun executeScheduledIO(injector: Injector) {
-        logger.info { "Joining scheduled IO tasks..." }
-        val scheduler = injector.getInstance(TaskScheduler::class.java)
-        val count = scheduler.size
-        val duration = measureTime {
-            scheduler.joinAll()
-            scheduler.clear()
-        }
-        reportDuration { "Executed $count IO task${if (count == 1) "" else "s"} in $duration." }
     }
 
     private fun loadModules(): Collection<AbstractModule> {
@@ -228,14 +216,21 @@ class GameServer(private val skipTypeVerificationOverride: Boolean? = null) :
         if (verification.isCacheUpdateRequired()) {
             logger.debug { verification.formatError() }
             logger.info { "Packing latest cache additions and restarting server..." }
-            val updater = injector.getInstance(TypeUpdater::class.java)
-            updater.updateConfigs()
+            updateCacheConfigs(injector)
             logger.info { "Now restarting game server..." }
             startApplication()
             throw ServerRestartException()
         } else if (verification.isFailure()) {
             throw RuntimeException(verification.formatError())
         }
+    }
+
+    private fun updateCacheConfigs(injector: Injector) {
+        val sync = injector.getInstance(TypeUpdaterCacheSync::class.java)
+        sync.syncFromBaseCaches()
+
+        val updater = injector.getInstance(TypeUpdaterConfigs::class.java)
+        updater.updateAll()
     }
 
     private fun cleanUpTypeResolver(injector: Injector) {

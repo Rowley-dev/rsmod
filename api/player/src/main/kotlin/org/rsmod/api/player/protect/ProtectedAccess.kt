@@ -336,6 +336,34 @@ public class ProtectedAccess(
 
     public fun teleport(dest: CoordGrid): Unit = teleport(dest, context.collision)
 
+    /**
+     * Starts an `exactmove` sequence from [start] to [end].
+     *
+     * @param start The starting coordinates, typically the current [Player.coords].
+     * @param end The destination coordinates where the player will appear after [delay2] client
+     *   cycles.
+     * @param delay1 The number of client cycles before the player visually appears at [start].
+     * @param delay2 The number of client cycles before the player visually appears at [end].
+     * @param dir A value in the range `[0..2047]` representing the direction the player will face
+     *   upon reaching [end]. Common values can be found in the `constants` file, prefixed with
+     *   "em_face_" (e.g. `em_face_north`).
+     */
+    public fun exactMove(
+        start: CoordGrid,
+        end: CoordGrid,
+        delay1: Int,
+        delay2: Int,
+        dir: Int,
+        collision: CollisionFlagMap = context.collision,
+    ) {
+        if (!collision.isZoneValid(end)) {
+            player.clearMapFlag()
+            mes("Invalid teleport!", ChatType.Engine)
+            return
+        }
+        PathingEntityCommon.exactMove(player, start, end, delay1, delay2, dir, collision)
+    }
+
     public fun anim(seq: SeqType, delay: Int = 0) {
         player.anim(seq, delay)
     }
@@ -1841,11 +1869,26 @@ public class ProtectedAccess(
      *   the coroutine suspension.
      * @see [resumeWithMainModalProtectedAccess]
      */
-    public suspend fun <T : Any> await(input: KClass<T>): T {
+    private suspend fun <T : Any> await(input: KClass<T>): T {
         val modal = player.ui.getModalOrNull(components.mainmodal)
         val value = coroutine.pause(input)
         return resumeWithMainModalProtectedAccess(value, modal)
     }
+
+    /**
+     * Suspends the coroutine until a [ResumePauseButtonInput] is received.
+     *
+     * This function is used in specific scenarios where the player must wait for a non-standard
+     * input - such as a button click from an interface like the bank tutorial or items kept on
+     * death. It ensures that the player's current modal remains unchanged during the suspension to
+     * maintain protected access.
+     *
+     * @return the received [ResumePauseButtonInput] instance.
+     * @throws ProtectedAccessLostException if the player could not retain protected access after
+     *   the coroutine suspension.
+     * @see [await]
+     */
+    public suspend fun pauseButton(): ResumePauseButtonInput = await(ResumePauseButtonInput::class)
 
     /**
      * @throws ProtectedAccessLostException if the player could not retain protected access after
@@ -2725,6 +2768,15 @@ public class ProtectedAccess(
         repo.locAnim(loc, seq)
     }
 
+    /* Map helper functions */
+    public fun spotanimMap(
+        repo: WorldRepository,
+        spotanim: SpotanimType,
+        coord: CoordGrid,
+        height: Int = 0,
+        delay: Int = 0,
+    ): Unit = repo.spotanimMap(spotanim, coord, height, delay)
+
     /* Message game helper functions */
     public fun mes(text: String): Unit = player.mes(text, ChatType.GameMessage)
 
@@ -2825,6 +2877,9 @@ public class ProtectedAccess(
 
     public fun ocUncert(type: ObjType, objTypes: ObjTypeList = context.objTypes): UnpackedObjType =
         objTypes.uncert(objTypes[type])
+
+    public fun ocName(type: ObjType, objTypes: ObjTypeList = context.objTypes): String =
+        objTypes[type].name
 
     public fun <T : Any> ocParam(
         obj: InvObj,

@@ -111,7 +111,7 @@ constructor(
 
     private fun Player.closeClient() {
         MiscOutput.logout(this)
-        flushClient()
+        client.flushHighPriority()
         client.close()
     }
 
@@ -121,10 +121,12 @@ constructor(
     }
 
     private fun Player.cleanUpPendingUpdates() {
+        pendingSay = null
         pendingStepCount = 0
         pendingTeleport = false
         pendingTelejump = false
         pendingRunWeight = false
+        pendingExactMove = null
         pendingFaceAngle = EntityFaceAngle.NULL
         pendingSequence = EntitySeq.NULL
         pendingSpotanims.clear()

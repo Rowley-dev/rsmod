@@ -11,6 +11,8 @@ public interface Client<S, T> {
 
     public fun flush()
 
+    public fun flushHighPriority()
+
     public fun unregister(service: S, player: Player)
 }
 

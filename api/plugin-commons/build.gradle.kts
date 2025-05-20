@@ -17,9 +17,7 @@ dependencies {
     api(projects.api.invtx)
     api(projects.api.market)
     api(projects.api.npc)
-    api(projects.api.npcSpawns)
     api(projects.api.objCharges)
-    api(projects.api.objSpawns)
     api(projects.api.player)
     api(projects.api.playerOutput)
     api(projects.api.random)
@@ -45,5 +43,4 @@ dependencies {
     api(projects.engine.objtx)
     api(projects.engine.routefinder)
     api(projects.engine.plugin)
-    api(projects.engine.scheduler)
 }
