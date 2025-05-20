@@ -38,6 +38,7 @@ object LumbridgeNpcs : NpcReferences() {
     val hewey = find("mistmyst_hewey", 7247092703186427097)
     val fishing_tutor = find("aide_tutor_fishing", 6240639608569249075)
     val millie = find("millie_the_miller", 5433484057267480234)
+    val ranged_tutor = find("aide_tutor_ranging")
 }
 
 internal object LumbridgeNpcEditor : NpcEditor() {

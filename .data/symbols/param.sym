@@ -298,3 +298,4 @@
 65532	closesound
 65533	next_loc_stage
 65534	opensound
+65535	mining_pickaxe_success_rates

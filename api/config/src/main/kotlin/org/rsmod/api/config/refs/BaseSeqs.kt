@@ -53,6 +53,25 @@ object BaseSeqs : SeqReferences() {
         find("human_woodcutting_trailblazer_axe", 1396237693275185632)
     val human_woodcutting_crystal_axe = find("human_woodcutting_crystal_axe", 1396236516752534637)
 
+    val human_mining_bronze_pickaxe = find("human_mining_bronze_pickaxe")
+    val human_mining_iron_pickaxe = find("human_mining_iron_pickaxe",)
+    val human_mining_steel_pickaxe = find("human_mining_steel_pickaxe")
+    val human_mining_black_pickaxe = find("human_mining_black_pickaxe")
+    val human_mining_mithril_pickaxe = find("human_mining_mithril_pickaxe")
+    val human_mining_adamant_pickaxe = find("human_mining_adamant_pickaxe",)
+    val human_mining_rune_pickaxe = find("human_mining_rune_pickaxe")
+    val human_mining_dragon_pickaxe = find("human_mining_dragon_pickaxe")
+    val human_mining_dragon_pickaxe_upgraded = find("human_mining_dragon_pickaxe_pretty")
+    val human_mining_third_age_pickaxe = find("human_mining_3a_pickaxe")
+    val human_mining_crystal_pickaxe = find("human_mining_crystal_pickaxe")
+    val human_mining_infernal_pickaxe = find("human_mining_infernal_pickaxe")
+    val human_mining_infernal_pickaxe_or = find("human_mining_trailblazer_pickaxe")
+
+
+
+
+
+
     val chatquiz1 = find("chatquiz1", 7867308265649250370)
     val chatquiz2 = find("chatquiz2", 6914569973419682947)
     val chatquiz3 = find("chatquiz3", 1596317404102498126)
