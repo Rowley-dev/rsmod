@@ -50,10 +50,8 @@
             <option value="$PROJECT_DIR$/api/net" />
             <option value="$PROJECT_DIR$/api/npc" />
             <option value="$PROJECT_DIR$/api/npc-plugin" />
-            <option value="$PROJECT_DIR$/api/npc-spawns" />
             <option value="$PROJECT_DIR$/api/obj-charges" />
             <option value="$PROJECT_DIR$/api/obj-plugin" />
-            <option value="$PROJECT_DIR$/api/obj-spawns" />
             <option value="$PROJECT_DIR$/api/parsers" />
             <option value="$PROJECT_DIR$/api/parsers/jackson" />
             <option value="$PROJECT_DIR$/api/parsers/json" />
@@ -156,7 +154,6 @@
             <option value="$PROJECT_DIR$/engine/objtx" />
             <option value="$PROJECT_DIR$/engine/plugin" />
             <option value="$PROJECT_DIR$/engine/routefinder" />
-            <option value="$PROJECT_DIR$/engine/scheduler" />
             <option value="$PROJECT_DIR$/engine/utils-bits" />
             <option value="$PROJECT_DIR$/engine/utils-sorting" />
             <option value="$PROJECT_DIR$/engine/utils-time" />

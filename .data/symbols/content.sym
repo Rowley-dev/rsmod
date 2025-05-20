@@ -47,3 +47,5 @@
 46	pickable_crop
 47	chicken_coop
 48	mining_pickaxe
+49	mining_rock
+50	mining_rock_empty

@@ -174,6 +174,7 @@ object BaseSynths : SynthReferences() {
     val found_gem = find("found_gem")
     val take_axe = find("take_axe")
     val tree_fall_sound = find("tree_fall_sound")
+    val mine_ore = find("mine_ore")
     val cow_atmospheric = find("cow_atmospheric")
     val darkbow_doublefire = find("darkbow_doublefire")
     val darkbow_dragon_attack = find("darkbow_dragon_attack")

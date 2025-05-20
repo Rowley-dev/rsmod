@@ -67,6 +67,19 @@ object BaseObjs : ObjReferences() {
     val juniper_logs = find("juniper_logs")
     val bark = find("hollow_bark")
 
+    val copper_ore = find("copper_ore")
+    val tin_ore = find("tin_ore")
+    val iron_ore = find("iron_ore")
+    val coal_ore = find("coal")
+    val silver_ore = find("silver_ore")
+    val gold_ore = find("gold_ore")
+    val mithril_ore = find("mithril_ore")
+    val adamant_ore = find("adamantite_ore")
+    val rune_ore = find("runite_ore")
+    val clay = find("clay")
+
+
+
     val coal_bag = find("coal_bag")
     val coal_bag_open = find("coal_bag_open")
     val rcu_pouch_small = find("rcu_pouch_small")

@@ -8,6 +8,7 @@ import net.rsprot.protocol.game.outgoing.misc.client.MinimapToggle
 import net.rsprot.protocol.game.outgoing.misc.client.ResetAnims
 import net.rsprot.protocol.game.outgoing.misc.player.ChatFilterSettings
 import net.rsprot.protocol.game.outgoing.varp.VarpReset
+import org.rsmod.api.config.refs.modgroups
 import org.rsmod.api.config.refs.varbits
 import org.rsmod.api.inv.weight.InvWeight
 import org.rsmod.api.player.output.Camera
@@ -72,6 +73,7 @@ constructor(
     }
 
     private fun Player.sendWelcomeMessage() {
+        modGroup = modgroups.owner
         val message = realm.config.loginMessage
         message?.let { mes(it, ChatType.Welcome) }
 

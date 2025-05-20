@@ -8,4 +8,5 @@ typealias controllers = BaseControllers
 
 object BaseControllers : ControllerBuilder() {
     val woodcutting_tree_duration = build("woodcutting_tree_duration")
+    val mining_rock_duration = build("mining_rock_duration")
 }

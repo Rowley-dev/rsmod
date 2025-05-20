@@ -1,3 +1,7 @@
 0	woodcutting_tree_cut_ticks
 1	woodcutting_tree_last_cut
 2	woodcutting_tree_loc
+3	mining_rock_mine_ticks
+4	mining_rock_last_mine
+5	mining_rock_loc
+

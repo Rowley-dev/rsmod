@@ -24,6 +24,7 @@ internal object MiningEnums : EnumReferences() {
     val iron_rock_pickaxes = find<ObjType, Int>("iron_rock_pickaxes")
     val coal_rock_pickaxes = find<ObjType, Int>("coal_rock_pickaxes")
     val silver_rock_pickaxes = find<ObjType, Int>("silver_rock_pickaxes")
+    val gold_rock_pickaxes = find<ObjType, Int>("gold_rock_pickaxes")
     val mithril_rock_pickaxes = find<ObjType, Int>("mithril_rock_pickaxes")
     val adamant_rock_pickaxes = find<ObjType, Int>("adamant_rock_pickaxes")
     val rune_rock_pickaxes = find<ObjType, Int>("rune_rock_pickaxes")
@@ -96,6 +97,22 @@ internal object MiningEnumBuilder : EnumBuilder() {
         }
 
         build<ObjType, Int>("silver_rock_pickaxes") {
+            this[objs.bronze_pickaxe] = rate(64, 200)
+            this[objs.iron_pickaxe] = rate(96, 300)
+            this[objs.steel_pickaxe] = rate(128, 400)
+            this[objs.black_pickaxe] = rate(144, 450)
+            this[objs.mithril_pickaxe] = rate(160, 500)
+            this[objs.adamant_pickaxe] = rate(192, 600)
+            this[objs.rune_pickaxe] = rate(224, 700)
+            this[objs.dragon_pickaxe] = rate(240, 750)
+            this[objs.dragon_pickaxe_upgraded] = rate(240, 750)
+            this[objs.third_age_pickaxe] = rate(240, 750)
+            this[objs.infernal_pickaxe] = rate(240, 750)
+            this[objs.infernal_pickaxe_or] = rate(240, 750)
+            this[objs.crystal_pickaxe] = rate(250, 800)
+        }
+
+        build<ObjType, Int>("gold_rock_pickaxes") {
             this[objs.bronze_pickaxe] = rate(64, 200)
             this[objs.iron_pickaxe] = rate(96, 300)
             this[objs.steel_pickaxe] = rate(128, 400)

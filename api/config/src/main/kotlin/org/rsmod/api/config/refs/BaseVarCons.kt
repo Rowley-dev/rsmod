@@ -10,4 +10,8 @@ object BaseVarCons : VarConBuilder() {
     val woodcutting_tree_cut_ticks = build("woodcutting_tree_cut_ticks")
     val woodcutting_tree_last_cut = build("woodcutting_tree_last_cut")
     val woodcutting_tree_loc = build("woodcutting_tree_loc")
+
+    val mining_rock_mine_ticks = build("mining_rock_mine_ticks")
+    val mining_rock_last_mine = build("mining_rock_last_mine")
+    val mining_rock_loc = build("mining_rock_loc")
 }
