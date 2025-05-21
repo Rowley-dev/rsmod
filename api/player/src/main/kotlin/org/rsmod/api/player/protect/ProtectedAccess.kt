@@ -26,14 +26,12 @@ import org.rsmod.api.invtx.invTransaction
 import org.rsmod.api.invtx.invTransfer
 import org.rsmod.api.invtx.select
 import org.rsmod.api.market.MarketPrices
-import org.rsmod.api.multiway.MultiwayChecker
 import org.rsmod.api.player.cinematic.CameraMode
 import org.rsmod.api.player.cinematic.Cinematic
 import org.rsmod.api.player.cinematic.CompassState
 import org.rsmod.api.player.cinematic.MinimapState
 import org.rsmod.api.player.combatClearQueue
 import org.rsmod.api.player.dialogue.Dialogue
-import org.rsmod.api.player.dialogue.Dialogues
 import org.rsmod.api.player.hit.modifier.NoopPlayerHitModifier
 import org.rsmod.api.player.hit.modifier.PlayerHitModifier
 import org.rsmod.api.player.hit.modifier.StandardPlayerHitModifier
@@ -49,9 +47,6 @@ import org.rsmod.api.player.input.ResumePObjDialogInput
 import org.rsmod.api.player.input.ResumePStringDialogInput
 import org.rsmod.api.player.input.ResumePauseButtonInput
 import org.rsmod.api.player.interact.HeldInteractions
-import org.rsmod.api.player.interact.LocInteractions
-import org.rsmod.api.player.interact.NpcInteractions
-import org.rsmod.api.player.interact.PlayerInteractions
 import org.rsmod.api.player.interact.WornInteractions
 import org.rsmod.api.player.isInCombat
 import org.rsmod.api.player.isInPvnCombat
@@ -108,6 +103,7 @@ import org.rsmod.api.player.ui.ifOpenOverlay
 import org.rsmod.api.player.ui.ifOpenSub
 import org.rsmod.api.player.ui.ifSetAnim
 import org.rsmod.api.player.ui.ifSetEvents
+import org.rsmod.api.player.ui.ifSetHide
 import org.rsmod.api.player.ui.ifSetNpcHead
 import org.rsmod.api.player.ui.ifSetObj
 import org.rsmod.api.player.ui.ifSetPlayerHead
@@ -130,10 +126,8 @@ import org.rsmod.events.KeyedEvent
 import org.rsmod.events.SuspendEvent
 import org.rsmod.events.UnboundEvent
 import org.rsmod.game.entity.Npc
-import org.rsmod.game.entity.NpcList
 import org.rsmod.game.entity.PathingEntity
 import org.rsmod.game.entity.Player
-import org.rsmod.game.entity.PlayerList
 import org.rsmod.game.entity.npc.NpcMode
 import org.rsmod.game.entity.npc.NpcUid
 import org.rsmod.game.entity.player.PlayerUid
@@ -154,6 +148,7 @@ import org.rsmod.game.map.collision.isZoneValid
 import org.rsmod.game.movement.MoveSpeed
 import org.rsmod.game.obj.InvObj
 import org.rsmod.game.obj.isType
+import org.rsmod.game.type.area.AreaType
 import org.rsmod.game.type.category.CategoryType
 import org.rsmod.game.type.category.CategoryTypeList
 import org.rsmod.game.type.comp.ComponentType
@@ -164,22 +159,17 @@ import org.rsmod.game.type.interf.IfEvent
 import org.rsmod.game.type.interf.IfSubType
 import org.rsmod.game.type.interf.InterfaceType
 import org.rsmod.game.type.inv.InvType
-import org.rsmod.game.type.inv.InvTypeList
 import org.rsmod.game.type.jingle.JingleType
 import org.rsmod.game.type.loc.LocType
-import org.rsmod.game.type.loc.LocTypeList
 import org.rsmod.game.type.mesanim.UnpackedMesAnimType
 import org.rsmod.game.type.midi.MidiType
 import org.rsmod.game.type.npc.NpcType
-import org.rsmod.game.type.npc.NpcTypeList
 import org.rsmod.game.type.npc.UnpackedNpcType
 import org.rsmod.game.type.obj.ObjType
-import org.rsmod.game.type.obj.ObjTypeList
 import org.rsmod.game.type.obj.UnpackedObjType
 import org.rsmod.game.type.param.ParamType
 import org.rsmod.game.type.queue.QueueType
 import org.rsmod.game.type.seq.SeqType
-import org.rsmod.game.type.seq.SeqTypeList
 import org.rsmod.game.type.seq.UnpackedSeqType
 import org.rsmod.game.type.spot.SpotanimType
 import org.rsmod.game.type.stat.StatType
@@ -233,7 +223,9 @@ public class ProtectedAccess(
      * @throws ProtectedAccessLostException if the player could not retain protected access after
      *   the coroutine suspension.
      */
-    public suspend fun playerWalk(dest: CoordGrid): Unit = playerMove(dest, MoveSpeed.Walk)
+    public suspend fun playerWalk(dest: CoordGrid) {
+        playerMove(dest, MoveSpeed.Walk)
+    }
 
     /**
      * Queues a route towards [dest] and delays the player (suspending this call-site) based on the
@@ -242,7 +234,9 @@ public class ProtectedAccess(
      * @throws ProtectedAccessLostException if the player could not retain protected access after
      *   the coroutine suspension.
      */
-    public suspend fun playerRun(dest: CoordGrid): Unit = playerMove(dest, MoveSpeed.Run)
+    public suspend fun playerRun(dest: CoordGrid) {
+        playerMove(dest, MoveSpeed.Run)
+    }
 
     /**
      * Queues a route to [dest] and delays the player (suspending this call-site) based on the
@@ -273,8 +267,9 @@ public class ProtectedAccess(
      *   the coroutine suspension.
      * @see [playerWalk]
      */
-    public suspend fun playerWalkWithMinDelay(dest: CoordGrid): Unit =
+    public suspend fun playerWalkWithMinDelay(dest: CoordGrid) {
         playerMoveWithMinDelay(dest, MoveSpeed.Walk)
+    }
 
     /**
      * Similar to [playerRun], but ensures a minimum delay of 1 cycle, regardless of distance.
@@ -283,8 +278,9 @@ public class ProtectedAccess(
      *   the coroutine suspension.
      * @see [playerRun]
      */
-    public suspend fun playerRunWithMinDelay(dest: CoordGrid): Unit =
+    public suspend fun playerRunWithMinDelay(dest: CoordGrid) {
         playerMoveWithMinDelay(dest, MoveSpeed.Run)
+    }
 
     /**
      * Similar to [playerMove], but ensures a minimum delay of 1 cycle, regardless of distance.
@@ -323,7 +319,9 @@ public class ProtectedAccess(
         PathingEntityCommon.telejump(player, collision, dest)
     }
 
-    public fun telejump(dest: CoordGrid): Unit = telejump(dest, context.collision)
+    public fun telejump(dest: CoordGrid) {
+        telejump(dest, context.collision)
+    }
 
     public fun teleport(dest: CoordGrid, collision: CollisionFlagMap) {
         if (!collision.isZoneValid(dest)) {
@@ -334,7 +332,9 @@ public class ProtectedAccess(
         PathingEntityCommon.teleport(player, collision, dest)
     }
 
-    public fun teleport(dest: CoordGrid): Unit = teleport(dest, context.collision)
+    public fun teleport(dest: CoordGrid) {
+        teleport(dest, context.collision)
+    }
 
     /**
      * Starts an `exactmove` sequence from [start] to [end].
@@ -348,14 +348,8 @@ public class ProtectedAccess(
      *   upon reaching [end]. Common values can be found in the `constants` file, prefixed with
      *   "em_face_" (e.g. `em_face_north`).
      */
-    public fun exactMove(
-        start: CoordGrid,
-        end: CoordGrid,
-        delay1: Int,
-        delay2: Int,
-        dir: Int,
-        collision: CollisionFlagMap = context.collision,
-    ) {
+    public fun exactMove(start: CoordGrid, end: CoordGrid, delay1: Int, delay2: Int, dir: Int) {
+        val collision = context.collision
         if (!collision.isZoneValid(end)) {
             player.clearMapFlag()
             mes("Invalid teleport!", ChatType.Engine)
@@ -392,8 +386,8 @@ public class ProtectedAccess(
         player.say(text)
     }
 
-    public fun transmog(npcType: NpcType, npcTypeList: NpcTypeList = context.npcTypes) {
-        player.transmog = npcTypeList[npcType]
+    public fun transmog(npcType: NpcType) {
+        player.transmog = context.npcTypes[npcType]
     }
 
     public fun resetTransmog() {
@@ -404,34 +398,50 @@ public class ProtectedAccess(
         player.rebuildAppearance()
     }
 
-    public fun isBodyType(type: Int): Boolean = player.appearance.bodyType == type
+    public fun isBodyType(type: Int): Boolean {
+        return player.appearance.bodyType == type
+    }
 
-    public fun isBodyTypeA(): Boolean = isBodyType(constants.bodytype_a)
+    public fun isBodyTypeA(): Boolean {
+        return isBodyType(constants.bodytype_a)
+    }
 
-    public fun isBodyTypeB(): Boolean = isBodyType(constants.bodytype_b)
+    public fun isBodyTypeB(): Boolean {
+        return isBodyType(constants.bodytype_b)
+    }
 
     public fun isWithinDistance(
         target: CoordGrid,
         distance: Int,
         width: Int = 1,
         length: Int = 1,
-    ): Boolean = player.isWithinDistance(target, distance, width, length)
+    ): Boolean {
+        return player.isWithinDistance(target, distance, width, length)
+    }
 
-    public fun isWithinDistance(other: PathingEntity, distance: Int): Boolean =
-        player.isWithinDistance(other, distance)
+    public fun isWithinDistance(other: PathingEntity, distance: Int): Boolean {
+        return player.isWithinDistance(other, distance)
+    }
 
-    public fun isWithinDistance(loc: BoundLocInfo, distance: Int): Boolean =
-        player.isWithinDistance(loc, distance)
+    public fun isWithinDistance(loc: BoundLocInfo, distance: Int): Boolean {
+        return player.isWithinDistance(loc, distance)
+    }
 
-    public fun isWithinArea(southWest: CoordGrid, northEast: CoordGrid): Boolean =
-        player.isWithinArea(southWest, northEast)
+    public fun isWithinArea(southWest: CoordGrid, northEast: CoordGrid): Boolean {
+        return player.isWithinArea(southWest, northEast)
+    }
 
-    public fun distanceTo(target: CoordGrid, width: Int = 1, length: Int = 1): Int =
-        player.distanceTo(target, width, length)
+    public fun distanceTo(target: CoordGrid, width: Int = 1, length: Int = 1): Int {
+        return player.distanceTo(target, width, length)
+    }
 
-    public fun distanceTo(other: PathingEntity): Int = player.distanceTo(other)
+    public fun distanceTo(other: PathingEntity): Int {
+        return player.distanceTo(other)
+    }
 
-    public fun distanceTo(loc: BoundLocInfo): Int = player.distanceTo(loc)
+    public fun distanceTo(loc: BoundLocInfo): Int {
+        return player.distanceTo(loc)
+    }
 
     public fun apRange(distance: Int) {
         val interaction = player.interaction ?: return
@@ -456,19 +466,19 @@ public class ProtectedAccess(
     }
 
     /**
-     * Returns a [Player] from [playerList] whose [Player.uid] matches [uid], or `null` if no match
-     * is found.
+     * Returns a [Player] from the active player list whose [Player.uid] matches [uid], or `null` if
+     * no match is found.
      */
-    public fun findUid(uid: PlayerUid, playerList: PlayerList): Player? {
-        return uid.resolve(playerList)
+    public fun findUid(uid: PlayerUid): Player? {
+        return uid.resolve(context.playerList)
     }
 
     /**
-     * Returns an [Npc] from [npcList] whose [Npc.uid] matches [uid], or `null` if no match is
-     * found.
+     * Returns an [Npc] from the active npc list whose [Npc.uid] matches [uid], or `null` if no
+     * match is found.
      */
-    public fun findUid(uid: NpcUid, npcList: NpcList = context.npcList): Npc? {
-        return uid.resolve(npcList)
+    public fun findUid(uid: NpcUid): Npc? {
+        return uid.resolve(context.npcList)
     }
 
     /**
@@ -490,9 +500,8 @@ public class ProtectedAccess(
         centre: CoordGrid,
         minRadius: Int,
         maxRadius: Int,
-        validator: RayCastValidator = RayCastValidator(context.collision),
     ): CoordGrid? {
-        val squares = validatedLineOfWalkSquares(centre, minRadius, maxRadius, validator)
+        val squares = validatedLineOfWalkSquares(centre, minRadius, maxRadius)
         return squares.firstOrNull()
     }
 
@@ -515,9 +524,8 @@ public class ProtectedAccess(
         centre: CoordGrid,
         minRadius: Int,
         maxRadius: Int,
-        validator: RayCastValidator = RayCastValidator(context.collision),
     ): CoordGrid? {
-        val squares = validatedLineOfSightSquares(centre, minRadius, maxRadius, validator)
+        val squares = validatedLineOfSightSquares(centre, minRadius, maxRadius)
         return squares.firstOrNull()
     }
 
@@ -536,8 +544,8 @@ public class ProtectedAccess(
         centre: CoordGrid,
         minRadius: Int,
         maxRadius: Int,
-        validator: RayCastValidator = RayCastValidator(context.collision),
     ): Sequence<CoordGrid> {
+        val validator = RayCastValidator(context.collision)
         val squares = shuffledSquares(centre, minRadius, maxRadius)
         return squares.filter {
             validator.hasLineOfWalk(centre, it, extraFlag = CollisionFlag.BLOCK_PLAYERS)
@@ -559,8 +567,8 @@ public class ProtectedAccess(
         centre: CoordGrid,
         minRadius: Int,
         maxRadius: Int,
-        validator: RayCastValidator = RayCastValidator(context.collision),
     ): Sequence<CoordGrid> {
+        val validator = RayCastValidator(context.collision)
         val squares = shuffledSquares(centre, minRadius, maxRadius)
         return squares.filter {
             validator.hasLineOfSight(centre, it, extraFlag = CollisionFlag.BLOCK_PLAYERS)
@@ -580,8 +588,8 @@ public class ProtectedAccess(
         centre: CoordGrid,
         minRadius: Int,
         maxRadius: Int,
-        collision: CollisionFlagMap = context.collision,
     ): Sequence<CoordGrid> {
+        val collision = context.collision
         val squares = shuffledSquares(centre, minRadius, maxRadius)
         return squares.filter {
             val flag = collision[coords]
@@ -604,28 +612,23 @@ public class ProtectedAccess(
     }
 
     /** Returns `true` if there is a valid line-of-walk from [from] to [to] */
-    public fun lineOfWalk(
-        from: CoordGrid,
-        to: CoordGrid,
-        validator: RayCastValidator = RayCastValidator(context.collision),
-    ): Boolean = validator.hasLineOfWalk(from, to, extraFlag = CollisionFlag.BLOCK_PLAYERS)
+    public fun lineOfWalk(from: CoordGrid, to: CoordGrid): Boolean {
+        val validator = RayCastValidator(context.collision)
+        return validator.hasLineOfWalk(from, to, extraFlag = CollisionFlag.BLOCK_PLAYERS)
+    }
 
     /** Returns `true` if there is a valid line-of-sight from [from] to [to] */
-    public fun lineOfSight(
-        from: CoordGrid,
-        to: CoordGrid,
-        validator: RayCastValidator = RayCastValidator(context.collision),
-    ): Boolean = validator.hasLineOfSight(from, to, extraFlag = CollisionFlag.BLOCK_PLAYERS)
+    public fun lineOfSight(from: CoordGrid, to: CoordGrid): Boolean {
+        val validator = RayCastValidator(context.collision)
+        return validator.hasLineOfSight(from, to, extraFlag = CollisionFlag.BLOCK_PLAYERS)
+    }
 
     /**
      * Returns `true` if there is a valid line-of-walk from [from] to **every** coordinate occupied
      * by [bounds].
      */
-    public fun lineOfWalk(
-        from: CoordGrid,
-        bounds: Bounds,
-        validator: RayCastValidator = RayCastValidator(context.collision),
-    ): Boolean {
+    public fun lineOfWalk(from: CoordGrid, bounds: Bounds): Boolean {
+        val validator = RayCastValidator(context.collision)
         val squares = bounds.asSequence()
         return squares.all {
             validator.hasLineOfWalk(from, it, extraFlag = CollisionFlag.BLOCK_PLAYERS)
@@ -636,11 +639,8 @@ public class ProtectedAccess(
      * Returns `true` if there is a valid line-of-sight from [from] to **every** coordinate occupied
      * by [bounds].
      */
-    public fun lineOfSight(
-        from: CoordGrid,
-        bounds: Bounds,
-        validator: RayCastValidator = RayCastValidator(context.collision),
-    ): Boolean {
+    public fun lineOfSight(from: CoordGrid, bounds: Bounds): Boolean {
+        val validator = RayCastValidator(context.collision)
         val squares = bounds.asSequence()
         return squares.all {
             validator.hasLineOfSight(from, it, extraFlag = CollisionFlag.BLOCK_PLAYERS)
@@ -648,57 +648,53 @@ public class ProtectedAccess(
     }
 
     /** Returns `true` if [coord] has the [CollisionFlag.BLOCK_WALK] collision flag set. */
-    public fun mapBlocked(
-        coord: CoordGrid,
-        collision: CollisionFlagMap = context.collision,
-    ): Boolean = collision.isWalkBlocked(coord)
+    public fun mapBlocked(coord: CoordGrid): Boolean {
+        return context.collision.isWalkBlocked(coord)
+    }
 
-    public fun opLoc1(
-        loc: BoundLocInfo,
-        interactions: LocInteractions = context.locInteractions,
-    ): Unit = interactions.interact(player, loc, InteractionOp.Op1)
+    public fun opLoc1(loc: BoundLocInfo) {
+        context.locInteractions.interact(player, loc, InteractionOp.Op1)
+    }
 
-    public fun opLoc2(
-        loc: BoundLocInfo,
-        interactions: LocInteractions = context.locInteractions,
-    ): Unit = interactions.interact(player, loc, InteractionOp.Op2)
+    public fun opLoc2(loc: BoundLocInfo) {
+        context.locInteractions.interact(player, loc, InteractionOp.Op2)
+    }
 
-    public fun opLoc3(
-        loc: BoundLocInfo,
-        interactions: LocInteractions = context.locInteractions,
-    ): Unit = interactions.interact(player, loc, InteractionOp.Op3)
+    public fun opLoc3(loc: BoundLocInfo) {
+        context.locInteractions.interact(player, loc, InteractionOp.Op3)
+    }
 
-    public fun opLoc4(
-        loc: BoundLocInfo,
-        interactions: LocInteractions = context.locInteractions,
-    ): Unit = interactions.interact(player, loc, InteractionOp.Op4)
+    public fun opLoc4(loc: BoundLocInfo) {
+        context.locInteractions.interact(player, loc, InteractionOp.Op4)
+    }
 
-    public fun opNpc1(npc: Npc, interactions: NpcInteractions = context.npcInteractions): Unit =
-        interactions.interact(player, npc, InteractionOp.Op1)
+    public fun opNpc1(npc: Npc) {
+        context.npcInteractions.interact(player, npc, InteractionOp.Op1)
+    }
 
-    public fun opNpc2(npc: Npc, interactions: NpcInteractions = context.npcInteractions): Unit =
-        interactions.interact(player, npc, InteractionOp.Op2)
+    public fun opNpc2(npc: Npc) {
+        context.npcInteractions.interact(player, npc, InteractionOp.Op2)
+    }
 
-    public fun opNpc3(npc: Npc, interactions: NpcInteractions = context.npcInteractions): Unit =
-        interactions.interact(player, npc, InteractionOp.Op3)
+    public fun opNpc3(npc: Npc) {
+        context.npcInteractions.interact(player, npc, InteractionOp.Op3)
+    }
 
-    public fun opNpc4(npc: Npc, interactions: NpcInteractions = context.npcInteractions): Unit =
-        interactions.interact(player, npc, InteractionOp.Op4)
+    public fun opNpc4(npc: Npc) {
+        context.npcInteractions.interact(player, npc, InteractionOp.Op4)
+    }
 
-    public fun opPlayer2(target: Player, interactions: PlayerInteractions): Unit =
-        interactions.interact(player, target, InteractionOp.Op2)
+    public fun opPlayer2(target: Player) {
+        context.playerInteractions.interact(player, target, InteractionOp.Op2)
+    }
 
     /**
      * @throws IllegalStateException if [checkOpHeldCallLimit] exceeds the safety net threshold.
      * @see [checkOpHeldCallLimit]
      */
-    public suspend fun opHeld1(
-        invSlot: Int,
-        inv: Inventory = player.inv,
-        interactions: HeldInteractions = context.heldInteractions,
-    ) {
+    public suspend fun opHeld1(invSlot: Int, inv: Inventory = player.inv) {
         checkOpHeldCallLimit()
-        interactions.interact(this, inv, invSlot, HeldOp.Op1)
+        context.heldInteractions.interact(this, inv, invSlot, HeldOp.Op1)
     }
 
     /**
@@ -710,39 +706,27 @@ public class ProtectedAccess(
      * @see [HeldOp.Op2]
      */
     // TODO: Add specialized `HeldInteractions.opHeld2` function that returns a result type.
-    public suspend fun opHeld2(
-        invSlot: Int,
-        inv: Inventory = player.inv,
-        interactions: HeldInteractions = context.heldInteractions,
-    ) {
+    public suspend fun opHeld2(invSlot: Int, inv: Inventory = player.inv) {
         checkOpHeldCallLimit()
-        interactions.interact(this, inv, invSlot, HeldOp.Op2)
+        context.heldInteractions.interact(this, inv, invSlot, HeldOp.Op2)
     }
 
     /**
      * @throws IllegalStateException if [checkOpHeldCallLimit] exceeds the safety net threshold.
      * @see [checkOpHeldCallLimit]
      */
-    public suspend fun opHeld3(
-        invSlot: Int,
-        inv: Inventory = player.inv,
-        interactions: HeldInteractions = context.heldInteractions,
-    ) {
+    public suspend fun opHeld3(invSlot: Int, inv: Inventory = player.inv) {
         checkOpHeldCallLimit()
-        interactions.interact(this, inv, invSlot, HeldOp.Op3)
+        context.heldInteractions.interact(this, inv, invSlot, HeldOp.Op3)
     }
 
     /**
      * @throws IllegalStateException if [checkOpHeldCallLimit] exceeds the safety net threshold.
      * @see [checkOpHeldCallLimit]
      */
-    public suspend fun opHeld4(
-        invSlot: Int,
-        inv: Inventory = player.inv,
-        interactions: HeldInteractions = context.heldInteractions,
-    ) {
+    public suspend fun opHeld4(invSlot: Int, inv: Inventory = player.inv) {
         checkOpHeldCallLimit()
-        interactions.interact(this, inv, invSlot, HeldOp.Op4)
+        context.heldInteractions.interact(this, inv, invSlot, HeldOp.Op4)
     }
 
     /**
@@ -753,13 +737,9 @@ public class ProtectedAccess(
      * @see [HeldOp.Op5]
      * @see [checkOpHeldCallLimit]
      */
-    public suspend fun opHeld5(
-        invSlot: Int,
-        inv: Inventory = player.inv,
-        interactions: HeldInteractions = context.heldInteractions,
-    ) {
+    public suspend fun opHeld5(invSlot: Int, inv: Inventory = player.inv) {
         checkOpHeldCallLimit()
-        interactions.interact(this, inv, invSlot, HeldOp.Op5)
+        context.heldInteractions.interact(this, inv, invSlot, HeldOp.Op5)
     }
 
     /**
@@ -769,11 +749,9 @@ public class ProtectedAccess(
      * @return [HeldEquipResult] with result of the attempt to equip respective obj.
      * @see [HeldInteractions.equip]
      */
-    public fun invEquip(
-        invSlot: Int,
-        inv: Inventory = player.inv,
-        interactions: HeldInteractions = context.heldInteractions,
-    ): HeldEquipResult = interactions.equip(this, inv, invSlot)
+    public fun invEquip(invSlot: Int, inv: Inventory = player.inv): HeldEquipResult {
+        return context.heldInteractions.equip(this, inv, invSlot)
+    }
 
     /**
      * Note: This function will bypass any `onOpHeld5` scripts attached to the respective obj and
@@ -781,13 +759,9 @@ public class ProtectedAccess(
      *
      * @see [HeldInteractions.drop]
      */
-    public suspend fun invDrop(
-        invSlot: Int,
-        inv: Inventory = player.inv,
-        interactions: HeldInteractions = context.heldInteractions,
-    ) {
+    public suspend fun invDrop(invSlot: Int, inv: Inventory = player.inv) {
         checkOpHeldCallLimit()
-        interactions.drop(this, inv, invSlot)
+        context.heldInteractions.drop(this, inv, invSlot)
     }
 
     /**
@@ -797,36 +771,46 @@ public class ProtectedAccess(
      * @return [WornUnequipResult] with result of the attempt to unequip respective obj.
      * @see [WornInteractions.unequip]
      */
+    // TODO: This function needs to be removed and any calls should be replaced with a new
+    //  `opWorn1`.
     public fun wornUnequip(
         wornSlot: Int,
         into: Inventory = player.inv,
         from: Inventory = player.worn,
-        interactions: WornInteractions = context.wornInteractions,
-    ): WornUnequipResult = interactions.unequip(this, from, wornSlot, into)
-
-    public fun faceSquare(target: CoordGrid): Unit = player.faceSquare(target)
-
-    public fun faceDirection(direction: Direction): Unit = player.faceDirection(direction)
-
-    public fun faceLoc(loc: BoundLocInfo): Unit = player.faceLoc(loc)
-
-    public fun faceEntitySquare(target: PathingEntity): Unit =
-        player.facePathingEntitySquare(target)
-
-    public fun stopAction() {
-        stopAction(context.eventBus)
+    ): WornUnequipResult {
+        return context.wornInteractions.unequip(this, from, wornSlot, into)
     }
 
-    public fun stopAction(eventBus: EventBus) {
-        player.clearPendingAction(eventBus)
+    public fun faceSquare(target: CoordGrid) {
+        player.faceSquare(target)
+    }
+
+    public fun faceDirection(direction: Direction) {
+        player.faceDirection(direction)
+    }
+
+    public fun faceLoc(loc: BoundLocInfo) {
+        player.faceLoc(loc)
+    }
+
+    public fun faceEntitySquare(target: PathingEntity) {
+        player.facePathingEntitySquare(target)
+    }
+
+    public fun stopAction() {
+        player.clearPendingAction(context.eventBus)
         player.resetFaceEntity()
         player.clearMapFlag()
         player.abortRoute()
     }
 
-    public fun invTransmit(inv: Inventory): Unit = player.startInvTransmit(inv)
+    public fun invTransmit(inv: Inventory) {
+        player.startInvTransmit(inv)
+    }
 
-    public fun invStopTransmit(inv: Inventory): Unit = player.stopInvTransmit(inv)
+    public fun invStopTransmit(inv: Inventory) {
+        player.stopInvTransmit(inv)
+    }
 
     public fun invAdd(
         inv: Inventory,
@@ -836,8 +820,8 @@ public class ProtectedAccess(
         cert: Boolean = false,
         uncert: Boolean = false,
         autoCommit: Boolean = true,
-    ): TransactionResultList<InvObj> =
-        player.invAdd(
+    ): TransactionResultList<InvObj> {
+        return player.invAdd(
             inv = inv,
             obj = obj.id,
             count = obj.count,
@@ -848,6 +832,7 @@ public class ProtectedAccess(
             uncert = uncert,
             autoCommit = autoCommit,
         )
+    }
 
     public fun invAdd(
         inv: Inventory,
@@ -859,8 +844,8 @@ public class ProtectedAccess(
         cert: Boolean = false,
         uncert: Boolean = false,
         autoCommit: Boolean = true,
-    ): TransactionResultList<InvObj> =
-        player.invAdd(
+    ): TransactionResultList<InvObj> {
+        return player.invAdd(
             inv = inv,
             type = type,
             count = count,
@@ -871,6 +856,7 @@ public class ProtectedAccess(
             uncert = uncert,
             autoCommit = autoCommit,
         )
+    }
 
     /**
      * Attempts to add exactly [count] of [obj] into [inv]. If the inventory cannot fit the items,
@@ -883,7 +869,9 @@ public class ProtectedAccess(
         count: Int = 1,
         coords: CoordGrid = this.coords,
         inv: Inventory = this.inv,
-    ): Boolean = player.invAddOrDrop(repo, obj, count, coords = coords, inv = inv)
+    ): Boolean {
+        return player.invAddOrDrop(repo, obj, count, coords = coords, inv = inv)
+    }
 
     public fun invDel(
         inv: Inventory,
@@ -892,8 +880,8 @@ public class ProtectedAccess(
         slot: Int? = null,
         strict: Boolean = true,
         autoCommit: Boolean = true,
-    ): TransactionResultList<InvObj> =
-        player.invDel(
+    ): TransactionResultList<InvObj> {
+        return player.invDel(
             inv = inv,
             type = type,
             count = count,
@@ -901,6 +889,7 @@ public class ProtectedAccess(
             strict = strict,
             autoCommit = autoCommit,
         )
+    }
 
     public fun invDel(
         inv: Inventory,
@@ -910,8 +899,8 @@ public class ProtectedAccess(
         count2: Int,
         strict: Boolean = true,
         autoCommit: Boolean = true,
-    ): TransactionResultList<InvObj> =
-        player.invDel(
+    ): TransactionResultList<InvObj> {
+        return player.invDel(
             inv = inv,
             type1 = type1,
             count1 = count1,
@@ -920,6 +909,7 @@ public class ProtectedAccess(
             strict = strict,
             autoCommit = autoCommit,
         )
+    }
 
     public fun invDel(
         inv: Inventory,
@@ -931,8 +921,8 @@ public class ProtectedAccess(
         count3: Int,
         strict: Boolean = true,
         autoCommit: Boolean = true,
-    ): TransactionResultList<InvObj> =
-        player.invDel(
+    ): TransactionResultList<InvObj> {
+        return player.invDel(
             inv = inv,
             type1 = type1,
             count1 = count1,
@@ -943,6 +933,7 @@ public class ProtectedAccess(
             strict = strict,
             autoCommit = autoCommit,
         )
+    }
 
     /**
      * This transaction will remove the first found inv obj associated with [replace] based on their
@@ -1078,8 +1069,8 @@ public class ProtectedAccess(
         cert: Boolean = false,
         uncert: Boolean = false,
         placehold: Boolean = false,
-    ): TransactionResultList<InvObj> =
-        player.invTransfer(
+    ): TransactionResultList<InvObj> {
+        return player.invTransfer(
             from = from,
             into = into,
             count = count,
@@ -1090,6 +1081,7 @@ public class ProtectedAccess(
             uncert = uncert,
             placehold = placehold,
         )
+    }
 
     public fun invMoveInv(
         from: Inventory,
@@ -1098,8 +1090,8 @@ public class ProtectedAccess(
         intoStartSlot: Int = 0,
         intoCapacity: Int? = null,
         keepSlots: Set<Int>? = null,
-    ): TransactionResultList<InvObj> =
-        player.invMoveAll(
+    ): TransactionResultList<InvObj> {
+        return player.invMoveAll(
             from = from,
             into = into,
             untransform = untransform,
@@ -1107,6 +1099,7 @@ public class ProtectedAccess(
             intoCapacity = intoCapacity,
             keepSlots = keepSlots,
         )
+    }
 
     public fun invMoveAll(
         into: Inventory,
@@ -1116,8 +1109,8 @@ public class ProtectedAccess(
         cert: Boolean = false,
         uncert: Boolean = false,
         autoCommit: Boolean = true,
-    ): TransactionResultList<InvObj> =
-        player.invAddAll(
+    ): TransactionResultList<InvObj> {
+        return player.invAddAll(
             inv = into,
             objs = objs,
             startSlot = startSlot,
@@ -1126,9 +1119,11 @@ public class ProtectedAccess(
             uncert = uncert,
             autoCommit = autoCommit,
         )
+    }
 
-    public fun invCompress(inventory: Inventory): TransactionResultList<InvObj> =
-        player.invCompress(inventory)
+    public fun invCompress(inventory: Inventory): TransactionResultList<InvObj> {
+        return player.invCompress(inventory)
+    }
 
     public fun invClear(inventory: Inventory) {
         player.invClear(inventory)
@@ -1138,10 +1133,9 @@ public class ProtectedAccess(
         inventory: Inventory,
         slot: Int,
         marketPrices: MarketPrices = context.marketPrices,
-        objTypes: ObjTypeList = context.objTypes,
     ) {
         val obj = inventory[slot] ?: return resendSlot(inventory, 0)
-        val normalized = objTypes.normalize(objTypes[obj])
+        val normalized = context.objTypes.normalize(context.objTypes[obj])
         player.objExamine(normalized, obj.count, marketPrices[normalized] ?: 0)
     }
 
@@ -1156,10 +1150,14 @@ public class ProtectedAccess(
     }
 
     /** @see [org.rsmod.api.player.stat.statRestore] */
-    public fun statRestore(stat: StatType): Unit = player.statRestore(stat)
+    public fun statRestore(stat: StatType) {
+        player.statRestore(stat)
+    }
 
     /** @see [org.rsmod.api.player.stat.statRestoreAll] */
-    public fun statRestoreAll(stats: Iterable<StatType>): Unit = player.statRestoreAll(stats)
+    public fun statRestoreAll(stats: Iterable<StatType>) {
+        player.statRestoreAll(stats)
+    }
 
     /** @see [org.rsmod.api.player.stat.statAdvance] */
     public fun statAdvance(
@@ -1167,31 +1165,39 @@ public class ProtectedAccess(
         xp: Double,
         rate: Double = player.xpRate,
         globalRate: Double = player.globalXpRate,
-    ): Int = player.statAdvance(stat, xp, rate, globalRate)
+    ): Int {
+        return player.statAdvance(stat, xp, rate, globalRate)
+    }
 
     /** @see [org.rsmod.api.player.stat.statAdd] */
-    public fun statAdd(stat: StatType, constant: Int, percent: Int): Unit =
+    public fun statAdd(stat: StatType, constant: Int, percent: Int) {
         player.statAdd(stat, constant, percent)
+    }
 
     /** @see [org.rsmod.api.player.stat.statBoost] */
-    public fun statBoost(stat: StatType, constant: Int, percent: Int): Unit =
+    public fun statBoost(stat: StatType, constant: Int, percent: Int) {
         player.statBoost(stat, constant, percent)
+    }
 
     /** @see [org.rsmod.api.player.stat.statSub] */
-    public fun statSub(stat: StatType, constant: Int, percent: Int): Unit =
+    public fun statSub(stat: StatType, constant: Int, percent: Int) {
         player.statSub(stat, constant, percent)
+    }
 
     /** @see [org.rsmod.api.player.stat.statDrain] */
-    public fun statDrain(stat: StatType, constant: Int, percent: Int): Unit =
+    public fun statDrain(stat: StatType, constant: Int, percent: Int) {
         player.statDrain(stat, constant, percent)
+    }
 
     /** @see [org.rsmod.api.player.stat.statHeal] */
-    public fun statHeal(stat: StatType, constant: Int, percent: Int): Unit =
+    public fun statHeal(stat: StatType, constant: Int, percent: Int) {
         player.statHeal(stat, constant, percent)
+    }
 
     /** @see [org.rsmod.api.player.stat.statRandom] */
-    public fun statRandom(stat: StatType, low: Int, high: Int, invisibleBoost: Int): Boolean =
-        player.statRandom(random, stat, low, high, invisibleBoost)
+    public fun statRandom(stat: StatType, low: Int, high: Int, invisibleBoost: Int): Boolean {
+        return player.statRandom(random, stat, low, high, invisibleBoost)
+    }
 
     /** @see [org.rsmod.api.player.stat.statRandom] */
     public fun statRandom(
@@ -1199,15 +1205,25 @@ public class ProtectedAccess(
         low: Int,
         high: Int,
         invisibleLevels: InvisibleLevels,
-    ): Boolean = player.statRandom(random, stat, low, high, invisibleLevels)
+    ): Boolean {
+        return player.statRandom(random, stat, low, high, invisibleLevels)
+    }
 
-    public fun isInCombat(): Boolean = player.isInCombat()
+    public fun isInCombat(): Boolean {
+        return player.isInCombat()
+    }
 
-    public fun isInPvpCombat(): Boolean = player.isInPvpCombat()
+    public fun isInPvpCombat(): Boolean {
+        return player.isInPvpCombat()
+    }
 
-    public fun isInPvnCombat(): Boolean = player.isInPvnCombat()
+    public fun isInPvnCombat(): Boolean {
+        return player.isInPvnCombat()
+    }
 
-    public fun isOutOfCombat(): Boolean = player.isOutOfCombat()
+    public fun isOutOfCombat(): Boolean {
+        return player.isOutOfCombat()
+    }
 
     public fun queueDeath() {
         player.queueDeath()
@@ -1262,8 +1278,8 @@ public class ProtectedAccess(
         sourceWeapon: ObjType? = null,
         sourceSecondary: ObjType? = null,
         modifier: PlayerHitModifier = StandardPlayerHitModifier,
-    ): Hit =
-        player.queueHit(
+    ): Hit {
+        return player.queueHit(
             source = source,
             delay = delay,
             type = type,
@@ -1274,6 +1290,7 @@ public class ProtectedAccess(
             sourceSecondary = sourceSecondary,
             modifier = modifier,
         )
+    }
 
     /**
      * Queues a hit dealt by [source] with an impact cycle delay of [delay] before the hit is
@@ -1319,8 +1336,8 @@ public class ProtectedAccess(
         hitmark: HitmarkTypeGroup = hitmark_groups.regular_damage,
         sourceSecondary: ObjType? = null,
         modifier: PlayerHitModifier = StandardPlayerHitModifier,
-    ): Hit =
-        player.queueHit(
+    ): Hit {
+        return player.queueHit(
             source = source,
             delay = delay,
             type = type,
@@ -1329,6 +1346,7 @@ public class ProtectedAccess(
             sourceSecondary = sourceSecondary,
             modifier = modifier,
         )
+    }
 
     /**
      * Queues a hit that does not originate from either a [Player] or an [Npc], with an impact cycle
@@ -1373,8 +1391,8 @@ public class ProtectedAccess(
         specific: Boolean = false,
         modifier: PlayerHitModifier = StandardPlayerHitModifier,
         strongQueue: Boolean = true,
-    ): Hit =
-        player.queueHit(
+    ): Hit {
+        return player.queueHit(
             delay = delay,
             type = type,
             damage = damage,
@@ -1383,6 +1401,7 @@ public class ProtectedAccess(
             modifier = modifier,
             strongQueue = strongQueue,
         )
+    }
 
     /**
      * Instantly applies [damage] to [player]. By default, this function applies no modification to
@@ -1406,8 +1425,8 @@ public class ProtectedAccess(
         specific: Boolean = false,
         modifier: PlayerHitModifier = NoopPlayerHitModifier,
         processor: InstantPlayerHitProcessor = context.instantHitProcessor,
-    ): Hit =
-        player.takeInstantHit(
+    ): Hit {
+        return player.takeInstantHit(
             type = type,
             damage = damage,
             hitmark = hitmark,
@@ -1415,6 +1434,7 @@ public class ProtectedAccess(
             modifier = modifier,
             processor = processor,
         )
+    }
 
     /**
      * Queues a hit dealt by [source] with an impact cycle delay of [delay] before the hit is
@@ -1465,7 +1485,7 @@ public class ProtectedAccess(
         sourceWeapon: ObjType? = null,
         sourceSecondary: ObjType? = null,
         modifier: PlayerHitModifier = StandardPlayerHitModifier,
-    ): Unit =
+    ) {
         player.queueImpactHit(
             source = source,
             delay = delay,
@@ -1477,6 +1497,7 @@ public class ProtectedAccess(
             sourceSecondary = sourceSecondary,
             modifier = modifier,
         )
+    }
 
     /**
      * Queues a hit dealt by [source] with an impact cycle delay of [delay] before the hit is
@@ -1523,7 +1544,7 @@ public class ProtectedAccess(
         hitmark: HitmarkTypeGroup = hitmark_groups.regular_damage,
         sourceSecondary: ObjType? = null,
         modifier: PlayerHitModifier = StandardPlayerHitModifier,
-    ): Unit =
+    ) {
         player.queueImpactHit(
             source = source,
             delay = delay,
@@ -1533,6 +1554,7 @@ public class ProtectedAccess(
             sourceSecondary = sourceSecondary,
             modifier = modifier,
         )
+    }
 
     /**
      * Queues a hit that does not originate from either a [Player] or an [Npc], with an impact cycle
@@ -1574,7 +1596,7 @@ public class ProtectedAccess(
         hitmark: HitmarkTypeGroup = hitmark_groups.regular_damage,
         specific: Boolean = false,
         modifier: PlayerHitModifier = StandardPlayerHitModifier,
-    ): Unit =
+    ) {
         player.queueImpactHit(
             delay = delay,
             type = type,
@@ -1584,28 +1606,33 @@ public class ProtectedAccess(
             modifier = modifier,
             strongQueue = true,
         )
+    }
 
-    internal fun findHitNpcSource(hit: Hit, npcList: NpcList = context.npcList): Npc? =
-        hit.resolveNpcSource(npcList)
+    internal fun findHitNpcSource(hit: Hit): Npc? {
+        return hit.resolveNpcSource(context.npcList)
+    }
 
-    internal fun findHitPlayerSource(
-        hit: Hit,
-        playerList: PlayerList = context.playerList,
-    ): Player? = hit.resolvePlayerSource(playerList)
-
-    @InternalApi
-    public fun processQueuedHit(hit: Hit): Unit = processQueuedHit(hit, StandardPlayerHitProcessor)
+    internal fun findHitPlayerSource(hit: Hit): Player? {
+        return hit.resolvePlayerSource(context.playerList)
+    }
 
     @InternalApi
-    public fun processQueuedHit(builder: HitBuilder, modifier: PlayerHitModifier): Unit =
+    public fun processQueuedHit(hit: Hit) {
+        processQueuedHit(hit, StandardPlayerHitProcessor)
+    }
+
+    @InternalApi
+    public fun processQueuedHit(builder: HitBuilder, modifier: PlayerHitModifier) {
         processQueuedHit(builder, modifier, StandardPlayerHitProcessor)
+    }
 
     public fun restoreToplevelTabs(tabTargets: Iterable<ComponentType>) {
         // TODO(combat): Publish gameframe-related event for `restoretabs`.
     }
 
-    public fun restoreToplevelTabs(vararg tabTarget: ComponentType): Unit =
+    public fun restoreToplevelTabs(vararg tabTarget: ComponentType) {
         restoreToplevelTabs(tabTarget.toList())
+    }
 
     public fun timer(timerType: TimerType, cycles: Int) {
         player.timer(timerType, cycles)
@@ -1672,19 +1699,26 @@ public class ProtectedAccess(
      *   no additional players can accrue kill credit (hero points) for this [player] until their
      *   hero points are cleared.
      */
-    public fun findHero(playerList: PlayerList): Player? {
-        return player.findHero(playerList)
+    public fun findHero(): Player? {
+        return player.findHero(context.playerList)
+    }
+
+    /** Returns `true` if [coords] is within [area]. */
+    public fun inArea(area: AreaType, coords: CoordGrid): Boolean {
+        return context.areaChecker.inArea(area, coords)
     }
 
     /** @see [org.rsmod.api.player.mapMultiway] */
-    public fun mapMultiway(multiway: MultiwayChecker): Boolean = player.mapMultiway(multiway)
+    public fun mapMultiway(): Boolean {
+        return player.mapMultiway(context.areaChecker)
+    }
 
     public fun combatClearQueue() {
         player.combatClearQueue()
     }
 
-    public fun clearPendingAction(eventBus: EventBus = context.eventBus) {
-        player.clearPendingAction(eventBus)
+    public fun clearPendingAction() {
+        player.clearPendingAction(context.eventBus)
     }
 
     /**
@@ -1740,18 +1774,17 @@ public class ProtectedAccess(
         return player.walkTrigger(trigger)
     }
 
-    public fun publish(event: UnboundEvent, eventBus: EventBus = context.eventBus) {
-        eventBus.publish(event)
+    public fun publish(event: UnboundEvent) {
+        context.eventBus.publish(event)
     }
 
-    public fun publish(event: KeyedEvent, eventBus: EventBus = context.eventBus) {
-        eventBus.publish(event)
+    public fun publish(event: KeyedEvent) {
+        context.eventBus.publish(event)
     }
 
-    public suspend fun <T : SuspendEvent<ProtectedAccess>> publish(
-        event: T,
-        eventBus: EventBus = context.eventBus,
-    ): Boolean = eventBus.publish(this, event)
+    public suspend fun <T : SuspendEvent<ProtectedAccess>> publish(event: T): Boolean {
+        return context.eventBus.publish(this, event)
+    }
 
     public fun logOut() {
         assertLogoutState()
@@ -1772,17 +1805,19 @@ public class ProtectedAccess(
         player.preventLogoutUntil = mapClock + cycles
     }
 
+    public suspend fun startDialogue(conversation: suspend Dialogue.() -> Unit) {
+        val dialogue = Dialogue(this, npc = null, faceFar = false)
+        conversation(dialogue)
+    }
+
     public suspend fun startDialogue(
         npc: Npc,
         faceFar: Boolean = false,
-        dialogues: Dialogues = context.dialogues,
         conversation: suspend Dialogue.() -> Unit,
-    ): Unit = dialogues.start(this, npc, faceFar, conversation)
-
-    public suspend fun startDialogue(
-        dialogues: Dialogues = context.dialogues,
-        conversation: suspend Dialogue.() -> Unit,
-    ): Unit = dialogues.start(this, conversation)
+    ) {
+        val dialogue = Dialogue(this, npc, faceFar)
+        conversation(dialogue)
+    }
 
     /**
      * @throws ProtectedAccessLostException if [regainProtectedAccess] returns false after
@@ -1820,9 +1855,9 @@ public class ProtectedAccess(
      *   suspension resumes.
      * @see [regainProtectedAccess]
      */
-    public suspend fun delay(seq: SeqType, seqTypes: SeqTypeList = context.seqTypes) {
-        val ticks = seqTypes[seq].tickDuration
-        check(ticks > 0) { "Seq tick duration must be positive: ${seqTypes[seq]}" }
+    public suspend fun delay(seq: SeqType) {
+        val ticks = context.seqTypes[seq].tickDuration
+        check(ticks > 0) { "Seq tick duration must be positive: ${context.seqTypes[seq]}" }
         delay(cycles = ticks)
     }
 
@@ -1895,11 +1930,21 @@ public class ProtectedAccess(
      *   the coroutine suspension.
      * @see [resumePauseButtonWithProtectedAccess]
      */
-    public suspend fun mesbox(
+    public suspend fun mesbox(text: String) {
+        val alignment = context.alignment
+        val pages = alignment.generateMesPageList(text)
+        for (page in pages) {
+            val (pgText, lineCount) = page
+            val lineHeight = alignment.mesLineHeight(lineCount)
+            mesboxPage(pgText, lineHeight, constants.cm_pausebutton, context.eventBus)
+        }
+    }
+
+    private suspend fun mesboxPage(
         text: String,
         lineHeight: Int,
-        pauseText: String = constants.cm_pausebutton,
-        eventBus: EventBus = context.eventBus,
+        pauseText: String,
+        eventBus: EventBus,
     ) {
         player.ifMesbox(text, pauseText, lineHeight, eventBus)
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
@@ -1912,8 +1957,60 @@ public class ProtectedAccess(
      *   the coroutine suspension.
      * @see [resumePauseButtonWithProtectedAccess]
      */
-    public suspend fun objbox(
+    public suspend fun objbox(obj: ObjType, text: String) {
+        objbox(obj, zoom = 400, text)
+    }
+
+    /**
+     * @throws ProtectedAccessLostException if the player could not retain protected access after
+     *   the coroutine suspension.
+     * @see [resumePauseButtonWithProtectedAccess]
+     */
+    public suspend fun objbox(obj: ObjType, zoom: Int, text: String) {
+        val alignment = context.alignment
+        val pages = alignment.generateChatPageList(text)
+        for (page in pages) {
+            objboxPage(obj, zoom, page.text, constants.cm_pausebutton, context.eventBus)
+        }
+    }
+
+    private suspend fun objboxPage(
         obj: ObjType,
+        zoom: Int,
+        text: String,
+        pauseText: String,
+        eventBus: EventBus,
+    ) {
+        player.ifObjbox(text, obj.id, zoom, pauseText, eventBus)
+        val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
+        val input = coroutine.pause(ResumePauseButtonInput::class)
+        resumePauseButtonWithProtectedAccess(input, modal, components.objectbox_pbutton)
+    }
+
+    /**
+     * @throws ProtectedAccessLostException if the player could not retain protected access after
+     *   the coroutine suspension.
+     * @see [resumePauseButtonWithProtectedAccess]
+     */
+    public suspend fun objbox(obj: InvObj, text: String) {
+        objbox(obj, zoom = 400, text)
+    }
+
+    /**
+     * @throws ProtectedAccessLostException if the player could not retain protected access after
+     *   the coroutine suspension.
+     * @see [resumePauseButtonWithProtectedAccess]
+     */
+    public suspend fun objbox(obj: InvObj, zoom: Int, text: String) {
+        val alignment = context.alignment
+        val pages = alignment.generateChatPageList(text)
+        for (page in pages) {
+            objboxPage(obj, zoom, page.text, constants.cm_pausebutton, context.eventBus)
+        }
+    }
+
+    private suspend fun objboxPage(
+        obj: InvObj,
         zoom: Int,
         text: String,
         pauseText: String = constants.cm_pausebutton,
@@ -1930,17 +2027,8 @@ public class ProtectedAccess(
      *   the coroutine suspension.
      * @see [resumePauseButtonWithProtectedAccess]
      */
-    public suspend fun objbox(
-        obj: InvObj,
-        zoomOrCount: Int,
-        text: String,
-        pauseText: String = constants.cm_pausebutton,
-        eventBus: EventBus = context.eventBus,
-    ) {
-        player.ifObjbox(text, obj.id, zoomOrCount, pauseText, eventBus)
-        val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
-        val input = coroutine.pause(ResumePauseButtonInput::class)
-        resumePauseButtonWithProtectedAccess(input, modal, components.objectbox_pbutton)
+    public suspend fun doubleobjbox(obj1: ObjType, obj2: ObjType, text: String) {
+        doubleobjbox(obj1, zoom1 = 400, obj2, zoom2 = 400, text)
     }
 
     /**
@@ -1954,13 +2042,44 @@ public class ProtectedAccess(
         obj2: ObjType,
         zoom2: Int,
         text: String,
-        pauseText: String = constants.cm_pausebutton,
-        eventBus: EventBus = context.eventBus,
+    ) {
+        val alignment = context.alignment
+        val pages = alignment.generateChatPageList(text)
+        for (page in pages) {
+            doubleobjboxPage(
+                obj1 = obj1,
+                zoom1 = zoom1,
+                obj2 = obj2,
+                zoom2 = zoom2,
+                text = page.text,
+                pauseText = constants.cm_pausebutton,
+                eventBus = context.eventBus,
+            )
+        }
+    }
+
+    private suspend fun doubleobjboxPage(
+        obj1: ObjType,
+        zoom1: Int,
+        obj2: ObjType,
+        zoom2: Int,
+        text: String,
+        pauseText: String,
+        eventBus: EventBus,
     ) {
         player.ifDoubleobjbox(text, obj1.id, zoom1, obj2.id, zoom2, pauseText, eventBus)
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
         resumePauseButtonWithProtectedAccess(input, modal, components.objectbox_double_pbutton)
+    }
+
+    /**
+     * @throws ProtectedAccessLostException if the player could not retain protected access after
+     *   the coroutine suspension.
+     * @see [resumePauseButtonWithProtectedAccess]
+     */
+    public suspend fun doubleobjbox(obj1: InvObj, obj2: InvObj, text: String) {
+        doubleobjbox(obj1, zoom1 = 400, obj2, zoom2 = 400, text)
     }
 
     /**
@@ -1974,8 +2093,30 @@ public class ProtectedAccess(
         obj2: InvObj,
         zoom2: Int,
         text: String,
-        pauseText: String = constants.cm_pausebutton,
-        eventBus: EventBus = context.eventBus,
+    ) {
+        val alignment = context.alignment
+        val pages = alignment.generateChatPageList(text)
+        for (page in pages) {
+            doubleobjboxPage(
+                obj1 = obj1,
+                zoom1 = zoom1,
+                obj2 = obj2,
+                zoom2 = zoom2,
+                text = page.text,
+                pauseText = constants.cm_pausebutton,
+                eventBus = context.eventBus,
+            )
+        }
+    }
+
+    private suspend fun doubleobjboxPage(
+        obj1: InvObj,
+        zoom1: Int,
+        obj2: InvObj,
+        zoom2: Int,
+        text: String,
+        pauseText: String,
+        eventBus: EventBus,
     ) {
         player.ifDoubleobjbox(text, obj1.id, zoom1, obj2.id, zoom2, pauseText, eventBus)
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
@@ -1994,9 +2135,8 @@ public class ProtectedAccess(
         choice2: String,
         result2: T,
         title: String = constants.cm_options,
-        eventBus: EventBus = context.eventBus,
     ): T {
-        player.ifChoice(title, "$choice1|$choice2", choiceCountInclusive = 2, eventBus)
+        player.ifChoice(title, "$choice1|$choice2", choiceCountInclusive = 2, context.eventBus)
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
         resumePauseButtonWithProtectedAccess(input, modal, components.chatmenu_pbutton)
@@ -2020,9 +2160,13 @@ public class ProtectedAccess(
         choice3: String,
         result3: T,
         title: String = constants.cm_options,
-        eventBus: EventBus = context.eventBus,
     ): T {
-        player.ifChoice(title, "$choice1|$choice2|$choice3", choiceCountInclusive = 3, eventBus)
+        player.ifChoice(
+            title,
+            "$choice1|$choice2|$choice3",
+            choiceCountInclusive = 3,
+            context.eventBus,
+        )
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
         resumePauseButtonWithProtectedAccess(input, modal, components.chatmenu_pbutton)
@@ -2049,13 +2193,12 @@ public class ProtectedAccess(
         choice4: String,
         result4: T,
         title: String = constants.cm_options,
-        eventBus: EventBus = context.eventBus,
     ): T {
         player.ifChoice(
             title,
             "$choice1|$choice2|$choice3|$choice4",
             choiceCountInclusive = 4,
-            eventBus,
+            context.eventBus,
         )
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
@@ -2086,13 +2229,12 @@ public class ProtectedAccess(
         choice5: String,
         result5: T,
         title: String = constants.cm_options,
-        eventBus: EventBus = context.eventBus,
     ): T {
         player.ifChoice(
             title,
             "$choice1|$choice2|$choice3|$choice4|$choice5",
             choiceCountInclusive = 5,
-            eventBus,
+            context.eventBus,
         )
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
@@ -2112,16 +2254,45 @@ public class ProtectedAccess(
      *   the coroutine suspension.
      * @see [resumePauseButtonWithProtectedAccess]
      */
+    public suspend fun chatPlayerNoAnim(text: String) {
+        chatPlayer(null, text)
+    }
+
+    /**
+     * @throws ProtectedAccessLostException if the player could not retain protected access after
+     *   the coroutine suspension.
+     * @see [resumePauseButtonWithProtectedAccess]
+     */
     public suspend fun chatPlayer(
-        text: String,
         mesanim: UnpackedMesAnimType?,
-        lineCount: Int,
-        lineHeight: Int,
+        text: String,
         title: String = player.displayName,
-        pauseText: String = constants.cm_pausebutton,
-        eventBus: EventBus = context.eventBus,
     ) {
-        val chatanim = mesanim?.splitGetAnim(lineCount)
+        val alignment = context.alignment
+        val pages = alignment.generateChatPageList(text)
+        for (page in pages) {
+            val (pgText, lineCount) = page
+            val lineHeight = alignment.chatLineHeight(lineCount)
+            val chatanim = mesanim?.splitGetAnim(lineCount)
+            chatPlayerPage(
+                text = pgText,
+                chatanim = chatanim,
+                lineHeight = lineHeight,
+                title = title,
+                pauseText = constants.cm_pausebutton,
+                eventBus = context.eventBus,
+            )
+        }
+    }
+
+    private suspend fun chatPlayerPage(
+        text: String,
+        chatanim: SeqType?,
+        lineHeight: Int,
+        title: String,
+        pauseText: String,
+        eventBus: EventBus,
+    ) {
         player.ifChatPlayer(title, text, chatanim, pauseText, lineHeight, eventBus)
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
@@ -2133,26 +2304,62 @@ public class ProtectedAccess(
      *   the coroutine suspension.
      * @see [resumePauseButtonWithProtectedAccess]
      */
+    public suspend fun chatNpcNoAnim(
+        npc: Npc,
+        text: String,
+        title: String = npc.resolveVisName(),
+        faceFar: Boolean = false,
+    ) {
+        chatNpc(npc, mesanim = null, text = text, title = title, faceFar = faceFar)
+    }
+
+    /**
+     * @throws ProtectedAccessLostException if the player could not retain protected access after
+     *   the coroutine suspension.
+     * @see [resumePauseButtonWithProtectedAccess]
+     */
     public suspend fun chatNpc(
+        npc: Npc,
+        mesanim: UnpackedMesAnimType?,
+        text: String,
+        title: String = npc.resolveVisName(),
+        faceFar: Boolean = false,
+    ) {
+        val alignment = context.alignment
+        val pages = alignment.generateChatPageList(text)
+        for (page in pages) {
+            val (pgText, lineCount) = page
+            val lineHeight = alignment.chatLineHeight(lineCount)
+            val chatanim = mesanim?.splitGetAnim(lineCount)
+            chatNpcPage(
+                title = title,
+                npc = npc,
+                text = pgText,
+                chatanim = chatanim,
+                lineHeight = lineHeight,
+                faceFar = faceFar,
+                pauseText = constants.cm_pausebutton,
+                eventBus = context.eventBus,
+            )
+        }
+    }
+
+    private suspend fun chatNpcPage(
         title: String,
         npc: Npc,
         text: String,
-        mesanim: UnpackedMesAnimType?,
-        lineCount: Int,
+        chatanim: SeqType?,
         lineHeight: Int,
-        faceFar: Boolean = false,
-        pauseText: String = constants.cm_pausebutton,
-        eventBus: EventBus = context.eventBus,
+        faceFar: Boolean,
+        pauseText: String,
+        eventBus: EventBus,
     ) {
         val inCombatMode = npc.mode == NpcMode.OpPlayer2 || npc.mode == NpcMode.ApPlayer2
         if (!inCombatMode) {
             npc.playerFace(player, faceFar = faceFar)
         }
         player.facePathingEntitySquare(npc)
-
-        val chatanim = mesanim?.splitGetAnim(lineCount)
         player.ifChatNpcSpecific(title, npc.type, text, chatanim, pauseText, lineHeight, eventBus)
-
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
         resumePauseButtonWithProtectedAccess(input, modal, components.chat_left_pbutton)
@@ -2164,20 +2371,40 @@ public class ProtectedAccess(
      * @see [resumePauseButtonWithProtectedAccess]
      */
     public suspend fun chatNpcNoTurn(
+        npc: Npc,
+        mesanim: UnpackedMesAnimType?,
+        text: String,
+        title: String = npc.resolveVisName(),
+    ) {
+        val alignment = context.alignment
+        val pages = alignment.generateChatPageList(text)
+        for (page in pages) {
+            val (pgText, lineCount) = page
+            val lineHeight = alignment.chatLineHeight(lineCount)
+            val chatanim = mesanim?.splitGetAnim(lineCount)
+            chatNpcNoTurnPage(
+                title = title,
+                npc = npc,
+                text = pgText,
+                chatanim = chatanim,
+                lineHeight = lineHeight,
+                pauseText = constants.cm_pausebutton,
+                eventBus = context.eventBus,
+            )
+        }
+    }
+
+    private suspend fun chatNpcNoTurnPage(
         title: String,
         npc: Npc,
         text: String,
-        mesanim: UnpackedMesAnimType?,
-        lineCount: Int,
+        chatanim: SeqType?,
         lineHeight: Int,
-        pauseText: String = constants.cm_pausebutton,
-        eventBus: EventBus = context.eventBus,
+        pauseText: String,
+        eventBus: EventBus,
     ) {
         player.facePathingEntitySquare(npc)
-
-        val chatanim = mesanim?.splitGetAnim(lineCount)
         player.ifChatNpcSpecific(title, npc.type, text, chatanim, pauseText, lineHeight, eventBus)
-
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
         resumePauseButtonWithProtectedAccess(input, modal, components.chat_left_pbutton)
@@ -2191,14 +2418,36 @@ public class ProtectedAccess(
     public suspend fun chatNpcSpecific(
         title: String,
         type: NpcType,
+        mesanim: UnpackedMesAnimType,
         text: String,
-        mesanim: UnpackedMesAnimType?,
-        lineCount: Int,
-        lineHeight: Int,
-        pauseText: String = constants.cm_pausebutton,
-        eventBus: EventBus = context.eventBus,
     ) {
-        val chatanim = mesanim?.splitGetAnim(lineCount)
+        val alignment = context.alignment
+        val pages = alignment.generateChatPageList(text)
+        for (page in pages) {
+            val (pgText, lineCount) = page
+            val lineHeight = alignment.chatLineHeight(lineCount)
+            val chatanim = mesanim.splitGetAnim(lineCount)
+            chatNpcSpecificPage(
+                title = title,
+                type = type,
+                text = pgText,
+                chatanim = chatanim,
+                lineHeight = lineHeight,
+                pauseText = constants.cm_pausebutton,
+                eventBus = context.eventBus,
+            )
+        }
+    }
+
+    private suspend fun chatNpcSpecificPage(
+        title: String,
+        type: NpcType,
+        text: String,
+        chatanim: SeqType,
+        lineHeight: Int,
+        pauseText: String,
+        eventBus: EventBus,
+    ) {
         player.ifChatNpcSpecific(title, type, text, chatanim, pauseText, lineHeight, eventBus)
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
@@ -2280,9 +2529,8 @@ public class ProtectedAccess(
         count: Int,
         header: String,
         text: String,
-        eventBus: EventBus = context.eventBus,
     ): Boolean {
-        player.ifConfirmDestroy(header, text, obj.id, count, eventBus)
+        player.ifConfirmDestroy(header, text, obj.id, count, context.eventBus)
         val modal = player.ui.getModalOrNull(components.chatbox_chatmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
         resumePauseButtonWithProtectedAccess(input, modal, components.confirmdestroy_pbutton)
@@ -2306,13 +2554,12 @@ public class ProtectedAccess(
         text: String,
         cancel: String,
         confirm: String,
-        eventBus: EventBus = context.eventBus,
     ): Boolean {
-        player.ifConfirmOverlay(target, title, text, cancel, confirm, eventBus)
+        player.ifConfirmOverlay(target, title, text, cancel, confirm, context.eventBus)
         val modal = player.ui.getModalOrNull(components.mainmodal)
         val input = coroutine.pause(ResumePCountDialogInput::class)
         val confirmed = resumeWithMainModalProtectedAccess(input.count != 0, modal)
-        player.ifConfirmOverlayClose(eventBus)
+        player.ifConfirmOverlayClose(context.eventBus)
         return confirmed
     }
 
@@ -2327,14 +2574,9 @@ public class ProtectedAccess(
      * @throws IllegalArgumentException if [choices] has more than `127` elements.
      * @see [resumeWithMainModalProtectedAccess]
      */
-    public suspend fun menu(
-        title: String,
-        hotkeys: Boolean,
-        choices: List<String>,
-        eventBus: EventBus = context.eventBus,
-    ): Int {
+    public suspend fun menu(title: String, hotkeys: Boolean, choices: List<String>): Int {
         require(choices.size < 128) { "Can only have up to 127 `choices`. (size=${choices.size})" }
-        player.ifMenu(title, choices.joinToString("|"), hotkeys, eventBus)
+        player.ifMenu(title, choices.joinToString("|"), hotkeys, context.eventBus)
         val modal = player.ui.getModalOrNull(components.mainmodal)
         val input = coroutine.pause(ResumePauseButtonInput::class)
         chatDefaultRestoreInput(player)
@@ -2352,12 +2594,9 @@ public class ProtectedAccess(
      * @throws IllegalArgumentException if [choices] has more than `127` elements.
      * @see [resumeWithMainModalProtectedAccess]
      */
-    public suspend fun menu(
-        title: String,
-        vararg choices: String,
-        hotkeys: Boolean = false,
-        eventBus: EventBus = context.eventBus,
-    ): Int = menu(title, hotkeys, choices.toList(), eventBus)
+    public suspend fun menu(title: String, vararg choices: String, hotkeys: Boolean = false): Int {
+        return menu(title, hotkeys, choices.toList())
+    }
 
     /**
      * Ensures we can still obtain protected access for [player]. If protected access cannot be
@@ -2522,74 +2761,123 @@ public class ProtectedAccess(
             op5 = op5,
         )
 
-    public fun toplevelSidebuttonSwitch(side: Int): Unit =
+    public fun toplevelSidebuttonSwitch(side: Int) {
         ClientScripts.toplevelSidebuttonSwitch(player, side)
+    }
 
     /* Cam helper functions */
-    public fun camLookAt(dest: CoordGrid, height: Int, rate: Int, rate2: Int): Unit =
+    public fun camLookAt(dest: CoordGrid, height: Int, rate: Int, rate2: Int) {
         Camera.camLookAt(player, dest, height, rate, rate2)
+    }
 
-    public fun camMoveTo(dest: CoordGrid, height: Int, rate: Int, rate2: Int): Unit =
+    public fun camMoveTo(dest: CoordGrid, height: Int, rate: Int, rate2: Int) {
         Camera.camMoveTo(player, dest, height, rate, rate2)
+    }
 
-    public fun camReset(): Unit = Camera.camReset(player)
+    public fun camReset() {
+        Camera.camReset(player)
+    }
 
     /* Cinematic helper functions */
-    public fun camModeClose(): Unit = Cinematic.setCameraMode(player, CameraMode.Close)
+    public fun camModeClose() {
+        Cinematic.setCameraMode(player, CameraMode.Close)
+    }
 
-    public fun camModeFar(): Unit = Cinematic.setCameraMode(player, CameraMode.Far)
+    public fun camModeFar() {
+        Cinematic.setCameraMode(player, CameraMode.Far)
+    }
 
-    public fun camModeFixed(): Unit = Cinematic.setCameraMode(player, CameraMode.Fixed)
+    public fun camModeFixed() {
+        Cinematic.setCameraMode(player, CameraMode.Fixed)
+    }
 
-    public fun camModeReset(): Unit = Cinematic.setCameraMode(player, CameraMode.Normal)
+    public fun camModeReset() {
+        Cinematic.setCameraMode(player, CameraMode.Normal)
+    }
 
-    public fun compassHideOps(): Unit = Cinematic.setCompassState(player, CompassState.HideOps)
+    public fun compassHideOps() {
+        Cinematic.setCompassState(player, CompassState.HideOps)
+    }
 
-    public fun compassUnknown2(): Unit = Cinematic.setCompassState(player, CompassState.Unknown2)
+    public fun compassUnknown2() {
+        Cinematic.setCompassState(player, CompassState.Unknown2)
+    }
 
-    public fun compassReset(): Unit = Cinematic.setCompassState(player, CompassState.Normal)
+    public fun compassReset() {
+        Cinematic.setCompassState(player, CompassState.Normal)
+    }
 
-    public fun minimapHideFull(): Unit = Cinematic.setMinimapState(player, MinimapState.Disabled)
+    public fun minimapHideFull() {
+        Cinematic.setMinimapState(player, MinimapState.Disabled)
+    }
 
-    public fun minimapNoOps(): Unit = Cinematic.setMinimapState(player, MinimapState.MinimapNoOp)
+    public fun minimapNoOps() {
+        Cinematic.setMinimapState(player, MinimapState.MinimapNoOp)
+    }
 
-    public fun minimapHideMap(): Unit =
+    public fun minimapHideMap() {
         Cinematic.setMinimapState(player, MinimapState.MinimapHidden)
+    }
 
-    public fun minimapHideCompass(): Unit =
+    public fun minimapHideCompass() {
         Cinematic.setMinimapState(player, MinimapState.CompassHidden)
+    }
 
-    public fun minimapNoOpsHideCompass(): Unit =
+    public fun minimapNoOpsHideCompass() {
         Cinematic.setMinimapState(player, MinimapState.MinimapNoOpCompassHidden)
+    }
 
-    public fun minimapReset(): Unit = Cinematic.setMinimapState(player, MinimapState.Normal)
+    public fun minimapReset() {
+        Cinematic.setMinimapState(player, MinimapState.Normal)
+    }
 
-    public fun hideTopLevel(): Unit = Cinematic.setHideToplevel(player, hide = true)
+    public fun hideTopLevel() {
+        Cinematic.setHideToplevel(player, hide = true)
+    }
 
-    public fun showTopLevel(): Unit = Cinematic.setHideToplevel(player, hide = false)
+    public fun showTopLevel() {
+        Cinematic.setHideToplevel(player, hide = false)
+    }
 
-    public fun clearHealthHud(): Unit = Cinematic.clearHealthHud(player)
+    public fun clearHealthHud() {
+        Cinematic.clearHealthHud(player)
+    }
 
-    public fun hideHealthHud(): Unit = Cinematic.setHideHealthHud(player, hide = true)
+    public fun hideHealthHud() {
+        Cinematic.setHideHealthHud(player, hide = true)
+    }
 
-    public fun showHealthHud(): Unit = Cinematic.setHideHealthHud(player, hide = false)
+    public fun showHealthHud() {
+        Cinematic.setHideHealthHud(player, hide = false)
+    }
 
-    public fun tempDisableAcceptAid(): Unit = Cinematic.disableAcceptAid(player)
+    public fun tempDisableAcceptAid() {
+        Cinematic.disableAcceptAid(player)
+    }
 
-    public fun restoreLastAcceptAid(): Unit = Cinematic.restoreAcceptAid(player)
+    public fun restoreLastAcceptAid() {
+        Cinematic.restoreAcceptAid(player)
+    }
 
-    public fun hideEntityOps(): Unit = Cinematic.setHideEntityOps(player, hide = true)
+    public fun hideEntityOps() {
+        Cinematic.setHideEntityOps(player, hide = true)
+    }
 
-    public fun showEntityOps(): Unit = Cinematic.setHideEntityOps(player, hide = false)
+    public fun showEntityOps() {
+        Cinematic.setHideEntityOps(player, hide = false)
+    }
 
-    public fun closeTopLevelTabs(eventBus: EventBus = context.eventBus): Unit =
-        Cinematic.closeToplevelTabs(player, eventBus)
+    public fun closeTopLevelTabs() {
+        Cinematic.closeToplevelTabs(player, context.eventBus)
+    }
 
-    public fun closeTopLevelTabsLenient(eventBus: EventBus = context.eventBus): Unit =
-        Cinematic.closeToplevelTabsLenient(player, eventBus)
+    public fun closeTopLevelTabsLenient() {
+        Cinematic.closeToplevelTabsLenient(player, context.eventBus)
+    }
 
-    public fun openTopLevelTabs(eventBus: EventBus = context.eventBus): Unit =
-        Cinematic.openTopLevelTabs(player, eventBus)
+    public fun openTopLevelTabs() {
+        Cinematic.openTopLevelTabs(player, context.eventBus)
+    }
 
     public fun fadeOverlay(
         startColour: Int,
@@ -2597,8 +2885,7 @@ public class ProtectedAccess(
         endColour: Int,
         endTransparency: Int,
         clientDuration: Int,
-        eventBus: EventBus = context.eventBus,
-    ): Unit =
+    ) {
         Cinematic.fadeOverlay(
             player,
             startColour,
@@ -2606,96 +2893,107 @@ public class ProtectedAccess(
             endColour,
             endTransparency,
             clientDuration,
-            eventBus,
+            context.eventBus,
         )
+    }
 
     public fun closeFadeOverlay(cycles: Int = 3) {
         longQueueDiscard(queues.fade_overlay_close, cycles)
     }
 
     /* Interface helper functions */
-    public fun ifClose(eventBus: EventBus = context.eventBus): Unit = player.ifClose(eventBus)
+    public fun ifClose() {
+        player.ifClose(context.eventBus)
+    }
 
-    public fun ifCloseSub(interf: InterfaceType, eventBus: EventBus = context.eventBus): Unit =
-        player.ifCloseSub(interf, eventBus)
+    public fun ifCloseSub(interf: InterfaceType) {
+        player.ifCloseSub(interf, context.eventBus)
+    }
 
     /**
      * Difference with [ifOpenMainModal] is that this function will **not** send
      * `toplevel_mainmodal_open` (script 2524) before opening the interface.
      */
-    public fun ifOpenMain(interf: InterfaceType, eventBus: EventBus = context.eventBus): Unit =
-        player.ifOpenMain(interf, eventBus)
+    public fun ifOpenMain(interf: InterfaceType) {
+        player.ifOpenMain(interf, context.eventBus)
+    }
 
     public fun ifOpenMainSidePair(
         main: InterfaceType,
         side: InterfaceType,
         colour: Int = -1,
         transparency: Int = -1,
-        eventBus: EventBus = context.eventBus,
-    ): Unit = player.ifOpenMainSidePair(main, side, colour, transparency, eventBus)
+    ) {
+        player.ifOpenMainSidePair(main, side, colour, transparency, context.eventBus)
+    }
 
     /**
      * Difference with [ifOpenMain] is that this function will send `toplevel_mainmodal_open`
      * (script 2524) before opening the interface in the main modal position.
      */
-    public fun ifOpenMainModal(
-        interf: InterfaceType,
-        colour: Int = -1,
-        transparency: Int = -1,
-        eventBus: EventBus = context.eventBus,
-    ): Unit = player.ifOpenMainModal(interf, eventBus, colour, transparency)
+    public fun ifOpenMainModal(interf: InterfaceType, colour: Int = -1, transparency: Int = -1) {
+        player.ifOpenMainModal(interf, context.eventBus, colour, transparency)
+    }
 
-    public fun ifOpenOverlay(
-        interf: InterfaceType,
-        target: ComponentType,
-        eventBus: EventBus = context.eventBus,
-    ): Unit = player.ifOpenOverlay(interf, target, eventBus)
+    public fun ifOpenOverlay(interf: InterfaceType, target: ComponentType) {
+        player.ifOpenOverlay(interf, target, context.eventBus)
+    }
 
-    public fun ifOpenOverlay(interf: InterfaceType, eventBus: EventBus = context.eventBus): Unit =
-        player.ifOpenOverlay(interf, eventBus)
+    public fun ifOpenOverlay(interf: InterfaceType) {
+        player.ifOpenOverlay(interf, context.eventBus)
+    }
 
-    public fun ifOpenFullOverlay(
-        interf: InterfaceType,
-        eventBus: EventBus = context.eventBus,
-    ): Unit = player.ifOpenFullOverlay(interf, eventBus)
+    public fun ifOpenFullOverlay(interf: InterfaceType) {
+        player.ifOpenFullOverlay(interf, context.eventBus)
+    }
 
-    public fun ifOpenSub(
-        interf: InterfaceType,
-        target: ComponentType,
-        type: IfSubType,
-        eventBus: EventBus = context.eventBus,
-    ): Unit = player.ifOpenSub(interf, target, type, eventBus)
+    public fun ifOpenSub(interf: InterfaceType, target: ComponentType, type: IfSubType) {
+        player.ifOpenSub(interf, target, type, context.eventBus)
+    }
 
-    public fun ifSetAnim(target: ComponentType, seq: SeqType?): Unit = player.ifSetAnim(target, seq)
+    public fun ifSetAnim(target: ComponentType, seq: SeqType?) {
+        player.ifSetAnim(target, seq)
+    }
 
-    public fun ifSetEvents(target: ComponentType, range: IntRange, vararg event: IfEvent): Unit =
+    public fun ifSetEvents(target: ComponentType, range: IntRange, vararg event: IfEvent) {
         player.ifSetEvents(target, range, *event)
+    }
 
-    public fun ifSetNpcHead(target: ComponentType, npc: NpcType): Unit =
+    public fun ifSetNpcHead(target: ComponentType, npc: NpcType) {
         player.ifSetNpcHead(target, npc)
+    }
 
-    public fun ifSetPlayerHead(target: ComponentType): Unit = player.ifSetPlayerHead(target)
+    public fun ifSetPlayerHead(target: ComponentType) {
+        player.ifSetPlayerHead(target)
+    }
 
-    public fun ifSetText(target: ComponentType, text: String): Unit = player.ifSetText(target, text)
+    public fun ifSetText(target: ComponentType, text: String) {
+        player.ifSetText(target, text)
+    }
 
-    public fun ifSetObj(target: ComponentType, obj: ObjType, zoom: Int): Unit =
+    public fun ifSetObj(target: ComponentType, obj: ObjType, zoom: Int) {
         player.ifSetObj(target, obj, zoom)
+    }
+
+    public fun ifSetHide(target: ComponentType, hide: Boolean) {
+        player.ifSetHide(target, hide)
+    }
 
     /* Inventory helper functions */
-    public fun invTakeFee(fee: Int, inv: Inventory = this.inv): Boolean =
-        player.invTakeFee(fee, inv)
+    public fun invTakeFee(fee: Int, inv: Inventory = this.inv): Boolean {
+        return player.invTakeFee(fee, inv)
+    }
 
-    public fun invCoinTotal(inv: Inventory = this.inv): Int = invTotal(inv, objs.coins)
+    public fun invCoinTotal(inv: Inventory = this.inv): Int {
+        return invTotal(inv, objs.coins)
+    }
 
-    public fun invTotal(
-        inv: Inventory,
-        content: ContentGroupType,
-        objTypes: ObjTypeList = context.objTypes,
-    ): Int {
+    public fun invTotal(inv: Inventory, content: ContentGroupType): Int {
+        val types = context.objTypes
         var count = 0
         for (obj in inv) {
             val filtered = obj ?: continue
-            val type = objTypes[filtered]
+            val type = types[filtered]
             if (type.isContentType(content)) {
                 count += filtered.count
             }
@@ -2703,62 +3001,48 @@ public class ProtectedAccess(
         return count
     }
 
-    public fun invTotal(
-        inv: Inventory,
-        obj: ObjType,
-        objTypes: ObjTypeList = context.objTypes,
-    ): Int = inv.count(objTypes[obj])
+    public fun invTotal(inv: Inventory, obj: ObjType): Int {
+        return inv.count(context.objTypes[obj])
+    }
 
-    public fun invContains(
-        inv: Inventory,
-        content: ContentGroupType,
-        objTypes: ObjTypeList = context.objTypes,
-    ): Boolean = inv.any { it != null && objTypes[it].contentGroup == content.id }
+    public fun invContains(inv: Inventory, content: ContentGroupType): Boolean {
+        val types = context.objTypes
+        return inv.any { it != null && types[it].contentGroup == content.id }
+    }
 
-    public fun inv(inv: InvType, invTypes: InvTypeList = context.invTypes): Inventory {
-        val type = invTypes[inv]
+    public fun inv(inv: InvType): Inventory {
+        val type = context.invTypes[inv]
         return player.invMap.getOrPut(type)
     }
 
-    public operator fun Inventory.contains(content: ContentGroupType): Boolean =
-        invContains(this, content)
+    public operator fun Inventory.contains(content: ContentGroupType): Boolean {
+        return invContains(this, content)
+    }
 
     /* Loc helper functions (lc=loc config) */
-    public fun <T : Any> lcParam(
-        type: LocType,
-        param: ParamType<T>,
-        locTypes: LocTypeList = context.locTypes,
-    ): T = locTypes[type].param(param)
+    public fun <T : Any> lcParam(type: LocType, param: ParamType<T>): T {
+        return context.locTypes[type].param(param)
+    }
 
-    public fun <T : Any> lcParamOrNull(
-        type: LocType,
-        param: ParamType<T>,
-        locTypes: LocTypeList = context.locTypes,
-    ): T? = locTypes[type].paramOrNull(param)
+    public fun <T : Any> lcParamOrNull(type: LocType, param: ParamType<T>): T? {
+        return context.locTypes[type].paramOrNull(param)
+    }
 
-    public fun <T : Any> locParam(
-        loc: LocInfo,
-        param: ParamType<T>,
-        locTypes: LocTypeList = context.locTypes,
-    ): T = locTypes[loc].param(param)
+    public fun <T : Any> locParam(loc: LocInfo, param: ParamType<T>): T {
+        return context.locTypes[loc].param(param)
+    }
 
-    public fun <T : Any> locParamOrNull(
-        loc: LocInfo,
-        param: ParamType<T>,
-        locTypes: LocTypeList = context.locTypes,
-    ): T? = locTypes[loc].paramOrNull(param)
+    public fun <T : Any> locParamOrNull(loc: LocInfo, param: ParamType<T>): T? {
+        return context.locTypes[loc].paramOrNull(param)
+    }
 
-    public fun <T : Any> locParam(
-        loc: BoundLocInfo,
-        param: ParamType<T>,
-        locTypes: LocTypeList = context.locTypes,
-    ): T = locTypes[loc].param(param)
+    public fun <T : Any> locParam(loc: BoundLocInfo, param: ParamType<T>): T {
+        return context.locTypes[loc].param(param)
+    }
 
-    public fun <T : Any> locParamOrNull(
-        loc: BoundLocInfo,
-        param: ParamType<T>,
-        locTypes: LocTypeList = context.locTypes,
-    ): T? = locTypes[loc].paramOrNull(param)
+    public fun <T : Any> locParamOrNull(loc: BoundLocInfo, param: ParamType<T>): T? {
+        return context.locTypes[loc].paramOrNull(param)
+    }
 
     public fun locAnim(repo: WorldRepository, loc: LocInfo, seq: SeqType) {
         repo.locAnim(loc, seq)
@@ -2775,32 +3059,40 @@ public class ProtectedAccess(
         coord: CoordGrid,
         height: Int = 0,
         delay: Int = 0,
-    ): Unit = repo.spotanimMap(spotanim, coord, height, delay)
+    ) {
+        repo.spotanimMap(spotanim, coord, height, delay)
+    }
 
     /* Message game helper functions */
-    public fun mes(text: String): Unit = player.mes(text, ChatType.GameMessage)
+    public fun mes(text: String) {
+        player.mes(text, ChatType.GameMessage)
+    }
 
-    public fun mes(text: String, type: ChatType): Unit = player.mes(text, type)
+    public fun mes(text: String, type: ChatType) {
+        player.mes(text, type)
+    }
 
-    public fun spam(text: String): Unit = player.spam(text)
+    public fun spam(text: String) {
+        player.spam(text)
+    }
 
     /* Midi helper functions */
-    public fun midiJingle(jingle: JingleType): Unit = player.midiJingle(jingle)
+    public fun midiJingle(jingle: JingleType) {
+        player.midiJingle(jingle)
+    }
 
-    public fun midiSong(midi: MidiType): Unit = player.midiSong(midi)
+    public fun midiSong(midi: MidiType) {
+        player.midiSong(midi)
+    }
 
     /* Npc helper functions (nc=npc config) */
-    public fun <T : Any> ncParam(
-        type: NpcType,
-        param: ParamType<T>,
-        npcTypes: NpcTypeList = context.npcTypes,
-    ): T = npcTypes[type].param(param)
+    public fun <T : Any> ncParam(type: NpcType, param: ParamType<T>): T {
+        return context.npcTypes[type].param(param)
+    }
 
-    public fun <T : Any> ncParamOrNull(
-        type: NpcType,
-        param: ParamType<T>,
-        npcTypes: NpcTypeList = context.npcTypes,
-    ): T? = npcTypes[type].paramOrNull(param)
+    public fun <T : Any> ncParamOrNull(type: NpcType, param: ParamType<T>): T? {
+        return context.npcTypes[type].paramOrNull(param)
+    }
 
     public fun npcPlayerFaceClose(npc: Npc, target: Player = this.player) {
         npc.playerFaceClose(target)
@@ -2827,13 +3119,9 @@ public class ProtectedAccess(
      *   changing back to its original type. Set to `Int.MAX_VALUE` to bypass this behavior.
      */
     @OptIn(InternalApi::class)
-    public fun npcChangeType(
-        npc: Npc,
-        into: NpcType,
-        duration: Int,
-        npcTypes: NpcTypeList = context.npcTypes,
-    ) {
-        npc.transmog(npcTypes[into], duration)
+    public fun npcChangeType(npc: Npc, into: NpcType, duration: Int) {
+        val type = context.npcTypes[into]
+        npc.transmog(type, duration)
         npc.assignUid()
     }
 
@@ -2841,13 +3129,9 @@ public class ProtectedAccess(
      * Returns the current npc type for [npc], considering `multinpc` from the [player]'s vars and
      * any transmogrification the npc may have undergone.
      */
-    public fun npcVisType(
-        npc: Npc,
-        interactions: NpcInteractions = context.npcInteractions,
-    ): UnpackedNpcType {
-        val currentType = npc.visType
-        val multiNpc = interactions.multiNpc(currentType, player.vars)
-        return multiNpc ?: currentType
+    public fun npcVisType(npc: Npc): UnpackedNpcType {
+        val multiNpc = context.npcInteractions.multiNpc(npc.visType, player.vars)
+        return multiNpc ?: npc.visType
     }
 
     /**
@@ -2859,7 +3143,9 @@ public class ProtectedAccess(
      * @throws IllegalStateException if npc type does not have an associated value for [param] and
      *   [param] does not have a [ParamType.default] value.
      */
-    public fun <T : Any> npcParam(npc: Npc, param: ParamType<T>): T = npc.type.param(param)
+    public fun <T : Any> npcParam(npc: Npc, param: ParamType<T>): T {
+        return npc.type.param(param)
+    }
 
     /**
      * Retrieves the [param] value for the base [npc], or returns `null` if the npc's type lacks an
@@ -2868,65 +3154,74 @@ public class ProtectedAccess(
      * _Note: This retrieves the parameter from the npc's **base** type, ignoring any `multinpc` or
      * transmogrification effects._
      */
-    public fun <T : Any> npcParamOrNull(npc: Npc, param: ParamType<T>): T? =
-        npc.type.paramOrNull(param)
+    public fun <T : Any> npcParamOrNull(npc: Npc, param: ParamType<T>): T? {
+        return npc.type.paramOrNull(param)
+    }
 
     /* Obj helper functions (oc=obj config) */
-    public fun ocCert(type: ObjType, objTypes: ObjTypeList = context.objTypes): UnpackedObjType =
-        objTypes.cert(objTypes[type])
+    public fun ocCert(type: ObjType): UnpackedObjType {
+        val types = context.objTypes
+        return types.cert(types[type])
+    }
 
-    public fun ocUncert(type: ObjType, objTypes: ObjTypeList = context.objTypes): UnpackedObjType =
-        objTypes.uncert(objTypes[type])
+    public fun ocUncert(type: ObjType): UnpackedObjType {
+        val types = context.objTypes
+        return types.uncert(types[type])
+    }
 
-    public fun ocName(type: ObjType, objTypes: ObjTypeList = context.objTypes): String =
-        objTypes[type].name
+    public fun ocName(type: ObjType): String {
+        return context.objTypes[type].name
+    }
 
-    public fun <T : Any> ocParam(
-        obj: InvObj,
-        type: ParamType<T>,
-        objTypes: ObjTypeList = context.objTypes,
-    ): T = objTypes[obj].param(type)
+    public fun <T : Any> ocParam(obj: InvObj, type: ParamType<T>): T {
+        return context.objTypes[obj].param(type)
+    }
 
-    public fun <T : Any> ocParamOrNull(
-        obj: InvObj?,
-        type: ParamType<T>,
-        objTypes: ObjTypeList = context.objTypes,
-    ): T? = if (obj == null) null else objTypes[obj].paramOrNull(type)
+    public fun <T : Any> ocParamOrNull(obj: InvObj?, type: ParamType<T>): T? {
+        return if (obj == null) null else context.objTypes[obj].paramOrNull(type)
+    }
 
-    public fun ocIsContentType(
-        obj: InvObj?,
-        content: ContentGroupType,
-        objTypes: ObjTypeList = context.objTypes,
-    ): Boolean = obj != null && objTypes[obj].contentGroup == content.id
+    public fun ocIsContentType(obj: InvObj?, content: ContentGroupType): Boolean {
+        return obj != null && context.objTypes[obj].contentGroup == content.id
+    }
 
-    public fun ocIsType(obj: InvObj?, type: ObjType): Boolean = obj.isType(type)
+    public fun ocIsType(obj: InvObj?, type: ObjType): Boolean {
+        return obj.isType(type)
+    }
 
-    public fun ocIsType(obj: InvObj?, type: ObjType, vararg others: ObjType): Boolean =
-        obj.isType(type) || others.any(obj::isType)
+    public fun ocIsType(obj: InvObj?, type: ObjType, vararg others: ObjType): Boolean {
+        return obj.isType(type) || others.any(obj::isType)
+    }
 
-    public fun ocTradable(obj: InvObj, objTypes: ObjTypeList = context.objTypes): Boolean =
-        objTypes[obj].tradeable
+    public fun ocTradable(obj: InvObj): Boolean {
+        return context.objTypes[obj].tradeable
+    }
 
-    public fun ocCategory(type: UnpackedObjType?, catTypes: CategoryTypeList): CategoryType? =
-        if (type == null) null else catTypes[type.category]
+    public fun ocCategory(type: UnpackedObjType?, catTypes: CategoryTypeList): CategoryType? {
+        return if (type == null) null else catTypes[type.category]
+    }
 
     // TODO: Decide if we either want to keep this and make it public; or remove it and refactor
     //  its usage (only called in one place as of now due to laziness).
-    internal fun ocType(obj: InvObj?): UnpackedObjType? =
-        if (obj == null) null else context.objTypes[obj]
+    internal fun ocType(obj: InvObj?): UnpackedObjType? {
+        return if (obj == null) null else context.objTypes[obj]
+    }
 
     /* Seq helper functions */
     /** Returns the total time duration of [seq] in _**client frames**_. */
-    public fun seqLength(seq: SeqType, seqTypes: SeqTypeList = context.seqTypes): Int =
-        seqTypes[seq].totalDelay
+    public fun seqLength(seq: SeqType): Int {
+        return context.seqTypes[seq].totalDelay
+    }
 
     /** Returns the total time duration of [seq] in _**server ticks**_. */
-    public fun seqTicks(seq: SeqType, seqTypes: SeqTypeList = context.seqTypes): Int =
-        seqTypes[seq].tickDuration
+    public fun seqTicks(seq: SeqType): Int {
+        return context.seqTypes[seq].tickDuration
+    }
 
     /* Sound helper functions */
-    public fun soundSynth(synth: SynthType, loops: Int = 1, delay: Int = 0): Unit =
+    public fun soundSynth(synth: SynthType, loops: Int = 1, delay: Int = 0) {
         player.soundSynth(synth, loops, delay)
+    }
 
     public fun soundArea(
         repo: WorldRepository,
@@ -2971,7 +3266,17 @@ public class ProtectedAccess(
         }
     }
 
-    override fun toString(): String = "ProtectedAccess(player=$player, coroutine=$coroutine)"
+    private fun Npc.resolveVisName(): String {
+        if (!type.isMultiNpc) {
+            return type.name
+        }
+        val visType = npcVisType(this)
+        return visType.name
+    }
+
+    override fun toString(): String {
+        return "ProtectedAccess(player=$player, coroutine=$coroutine)"
+    }
 }
 
 private fun <T> lazy(init: () -> T): Lazy<T> = lazy(LazyThreadSafetyMode.NONE, init)

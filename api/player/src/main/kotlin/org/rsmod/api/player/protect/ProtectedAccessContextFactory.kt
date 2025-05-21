@@ -1,12 +1,14 @@
 package org.rsmod.api.player.protect
 
 import jakarta.inject.Inject
+import org.rsmod.api.area.checker.AreaChecker
 import org.rsmod.api.market.MarketPrices
-import org.rsmod.api.player.dialogue.Dialogues
+import org.rsmod.api.player.dialogue.align.TextAlignment
 import org.rsmod.api.player.hit.processor.InstantPlayerHitProcessor
 import org.rsmod.api.player.interact.HeldInteractions
 import org.rsmod.api.player.interact.LocInteractions
 import org.rsmod.api.player.interact.NpcInteractions
+import org.rsmod.api.player.interact.PlayerInteractions
 import org.rsmod.api.player.interact.WornInteractions
 import org.rsmod.api.random.GameRandom
 import org.rsmod.events.EventBus
@@ -27,7 +29,8 @@ constructor(
     private val npcList: NpcList,
     private val playerList: PlayerList,
     private val collision: CollisionFlagMap,
-    private val dialogues: Dialogues,
+    private val areaChecker: AreaChecker,
+    private val alignment: TextAlignment,
     private val invTypes: InvTypeList,
     private val locTypes: LocTypeList,
     private val npcTypes: NpcTypeList,
@@ -35,6 +38,7 @@ constructor(
     private val seqTypes: SeqTypeList,
     private val locInteractions: LocInteractions,
     private val npcInteractions: NpcInteractions,
+    private val playerInteractions: PlayerInteractions,
     private val heldInteractions: HeldInteractions,
     private val wornInteractions: WornInteractions,
     private val marketPrices: MarketPrices,
@@ -47,7 +51,8 @@ constructor(
             getNpcList = { npcList },
             getPlayerList = { playerList },
             getCollision = { collision },
-            getDialogues = { dialogues },
+            getAreaChecker = { areaChecker },
+            getAlignment = { alignment },
             getInvTypes = { invTypes },
             getLocTypes = { locTypes },
             getNpcTypes = { npcTypes },
@@ -55,6 +60,7 @@ constructor(
             getSeqTypes = { seqTypes },
             getLocInteractions = { locInteractions },
             getNpcInteractions = { npcInteractions },
+            getPlayerInteractions = { playerInteractions },
             getHeldInteractions = { heldInteractions },
             getWornInteractions = { wornInteractions },
             getMarketPrices = { marketPrices },
@@ -69,7 +75,8 @@ constructor(
                 getNpcList = { error("No npc list provided.") },
                 getPlayerList = { error("No player list provided.") },
                 getCollision = { error("No collision map provided.") },
-                getDialogues = { error("No dialogues provided.") },
+                getAreaChecker = { error("No area checker provided.") },
+                getAlignment = { error("No text alignment provided.") },
                 getInvTypes = { error("No inv type list provided.") },
                 getLocTypes = { error("No loc type list provided.") },
                 getNpcTypes = { error("No npc type list provided.") },
@@ -77,6 +84,7 @@ constructor(
                 getSeqTypes = { error("No seq type list provided.") },
                 getLocInteractions = { error("No loc interactions provided.") },
                 getNpcInteractions = { error("No npc interactions provided.") },
+                getPlayerInteractions = { error("No player interactions provided.") },
                 getHeldInteractions = { error("No held interactions provided.") },
                 getWornInteractions = { error("No worn interactions provided.") },
                 getMarketPrices = { error("No market prices provided.") },

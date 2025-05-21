@@ -1,11 +1,13 @@
 package org.rsmod.api.player.protect
 
+import org.rsmod.api.area.checker.AreaChecker
 import org.rsmod.api.market.MarketPrices
-import org.rsmod.api.player.dialogue.Dialogues
+import org.rsmod.api.player.dialogue.align.TextAlignment
 import org.rsmod.api.player.hit.processor.InstantPlayerHitProcessor
 import org.rsmod.api.player.interact.HeldInteractions
 import org.rsmod.api.player.interact.LocInteractions
 import org.rsmod.api.player.interact.NpcInteractions
+import org.rsmod.api.player.interact.PlayerInteractions
 import org.rsmod.api.player.interact.WornInteractions
 import org.rsmod.api.random.GameRandom
 import org.rsmod.events.EventBus
@@ -74,7 +76,8 @@ public data class ProtectedAccessContext(
     private val getNpcList: () -> NpcList,
     private val getPlayerList: () -> PlayerList,
     private val getCollision: () -> CollisionFlagMap,
-    private val getDialogues: () -> Dialogues,
+    private val getAreaChecker: () -> AreaChecker,
+    private val getAlignment: () -> TextAlignment,
     private val getInvTypes: () -> InvTypeList,
     private val getLocTypes: () -> LocTypeList,
     private val getNpcTypes: () -> NpcTypeList,
@@ -82,6 +85,7 @@ public data class ProtectedAccessContext(
     private val getSeqTypes: () -> SeqTypeList,
     private val getLocInteractions: () -> LocInteractions,
     private val getNpcInteractions: () -> NpcInteractions,
+    private val getPlayerInteractions: () -> PlayerInteractions,
     private val getHeldInteractions: () -> HeldInteractions,
     private val getWornInteractions: () -> WornInteractions,
     private val getMarketPrices: () -> MarketPrices,
@@ -92,7 +96,8 @@ public data class ProtectedAccessContext(
     public val npcList: NpcList by lazyLoad { getNpcList() }
     public val playerList: PlayerList by lazyLoad { getPlayerList() }
     public val collision: CollisionFlagMap by lazyLoad { getCollision() }
-    public val dialogues: Dialogues by lazyLoad { getDialogues() }
+    public val areaChecker: AreaChecker by lazyLoad { getAreaChecker() }
+    public val alignment: TextAlignment by lazyLoad { getAlignment() }
     public val invTypes: InvTypeList by lazyLoad { getInvTypes() }
     public val locTypes: LocTypeList by lazyLoad { getLocTypes() }
     public val npcTypes: NpcTypeList by lazyLoad { getNpcTypes() }
@@ -100,6 +105,7 @@ public data class ProtectedAccessContext(
     public val seqTypes: SeqTypeList by lazyLoad { getSeqTypes() }
     public val locInteractions: LocInteractions by lazyLoad { getLocInteractions() }
     public val npcInteractions: NpcInteractions by lazyLoad { getNpcInteractions() }
+    public val playerInteractions: PlayerInteractions by lazyLoad { getPlayerInteractions() }
     public val heldInteractions: HeldInteractions by lazyLoad { getHeldInteractions() }
     public val wornInteractions: WornInteractions by lazyLoad { getWornInteractions() }
     public val marketPrices: MarketPrices by lazyLoad { getMarketPrices() }

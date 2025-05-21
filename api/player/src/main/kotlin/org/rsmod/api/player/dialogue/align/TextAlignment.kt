@@ -9,12 +9,21 @@ import org.rsmod.game.type.font.UnpackedFontMetricsType
 public class TextAlignment @Inject constructor(fonts: FontMetricsTypeList) {
     private val dialogueFont by lazy { fonts[fontmetrics.q8_full] }
 
+    public fun generateChatPageList(text: String): List<Page> {
+        return generatePageList(text, CHAT_MAX_LINE_PIXEL_WIDTH, dialogueFont)
+    }
+
+    public fun generateMesPageList(text: String): List<Page> {
+        return generatePageList(text, MESBOX_MAX_LINE_PIXEL_WIDTH, dialogueFont)
+    }
+
     public fun generatePageList(
         text: String,
-        font: UnpackedFontMetricsType = dialogueFont,
+        lineWidth: Int,
+        font: UnpackedFontMetricsType,
     ): List<Page> {
         val lineBuffers = Array(MAX_TOTAL_LINE_COUNT) { "" }
-        val lineCount = font.splitText(text, MAX_LINE_PIXEL_WIDTH, lineBuffers)
+        val lineCount = font.splitText(text, lineWidth, lineBuffers)
         val pageCount = ceil(lineCount.toDouble() / LINES_PER_PAGE).toInt()
         return when (pageCount) {
             1 -> {
@@ -150,11 +159,19 @@ public class TextAlignment @Inject constructor(fonts: FontMetricsTypeList) {
             this[index] + if (index < indexRangeExclusive.last) LINE_SEPARATOR else ""
         }
 
-    public fun lineHeight(lineCount: Int): Int =
+    public fun chatLineHeight(lineCount: Int): Int =
         when (lineCount) {
-            2 -> TWO_LINE_LINE_HEIGHT
-            3 -> THREE_LINE_LINE_HEIGHT
-            else -> DEFAULT_LINE_HEIGHT
+            2 -> CHAT_TWO_LINE_LINE_HEIGHT
+            3 -> CHAT_THREE_LINE_LINE_HEIGHT
+            else -> CHAT_DEFAULT_LINE_HEIGHT
+        }
+
+    public fun mesLineHeight(lineCount: Int): Int =
+        when (lineCount) {
+            2 -> MESBOX_TWO_LINE_LINE_HEIGHT
+            3 -> MESBOX_THREE_LINE_LINE_HEIGHT
+            4 -> MESBOX_FOUR_LINE_LINE_HEIGHT
+            else -> MESBOX_DEFAULT_LINE_HEIGHT
         }
 
     public data class Page(val text: String, val lineCount: Int)
@@ -164,15 +181,21 @@ public class TextAlignment @Inject constructor(fonts: FontMetricsTypeList) {
         private const val MAX_PAGE_COUNT: Int = 2
         private const val MAX_TOTAL_LINE_COUNT: Int = LINES_PER_PAGE * MAX_PAGE_COUNT
 
-        private const val MAX_LINE_PIXEL_WIDTH: Int = 380
+        private const val CHAT_MAX_LINE_PIXEL_WIDTH: Int = 380
+        private const val MESBOX_MAX_LINE_PIXEL_WIDTH: Int = 470
 
-        private const val DEFAULT_LINE_HEIGHT: Int = 16
-        private const val TWO_LINE_LINE_HEIGHT: Int = 28
-        private const val THREE_LINE_LINE_HEIGHT: Int = 20
+        private const val CHAT_DEFAULT_LINE_HEIGHT: Int = 16
+        private const val CHAT_TWO_LINE_LINE_HEIGHT: Int = 28
+        private const val CHAT_THREE_LINE_LINE_HEIGHT: Int = 20
+
+        private const val MESBOX_DEFAULT_LINE_HEIGHT: Int = 0
+        private const val MESBOX_TWO_LINE_LINE_HEIGHT: Int = 31
+        private const val MESBOX_THREE_LINE_LINE_HEIGHT: Int = 24
+        private const val MESBOX_FOUR_LINE_LINE_HEIGHT: Int = 17
 
         /**
-         * Used as a separator for each line in a dialogue page. This _can_ be left as a whitespace
-         * as this is handled on the client's end as well. However, we send it for emulation.
+         * Used as a separator for each line in a dialogue page. This _can_ be left as whitespace as
+         * this is handled on the client's end as well. However, we send it for emulation.
          */
         private const val LINE_SEPARATOR: String = "<br>"
     }

@@ -5,6 +5,7 @@ plugins {
 dependencies {
     api(libs.guice)
     api(libs.bundles.logging)
+    api(projects.api.areaChecker)
     api(projects.api.cache)
     api(projects.api.cheat)
     api(projects.api.combat.combatCommons)
@@ -34,6 +35,7 @@ dependencies {
     api(projects.api.type.typeScriptDsl)
     api(projects.api.utils.utilsFormat)
     api(projects.api.utils.utilsIo)
+    api(projects.api.utils.utilsTime)
     api(projects.api.utils.utilsVars)
     api(projects.engine.annotations)
     api(projects.engine.coroutine)
