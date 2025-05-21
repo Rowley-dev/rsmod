@@ -21,7 +21,6 @@ private typealias pickaxe_enums = MiningEnums
 internal object MiningRocks : LocEditor() {
     init {
         copper_1(rocks.copper_rock_1, empty_rocks.rock_empty_1)
-        copper_2(rocks.copper_rock_2, empty_rocks.rock_empty_2)
         tin_1(rocks.tin_rock_1, empty_rocks.rock_empty_1)
         iron_1(rocks.iron_rock_1, empty_rocks.rock_empty_1)
         coal_1(rocks.coal_rock_1, empty_rocks.rock_empty_1)
@@ -31,6 +30,16 @@ internal object MiningRocks : LocEditor() {
         adamant_1(rocks.adamant_rock_1, empty_rocks.rock_empty_1)
         rune_1(rocks.rune_rock_1, empty_rocks.rock_empty_1)
         rock_empty_1(empty_rocks.rock_empty_1)
+        copper_2(rocks.copper_rock_2, empty_rocks.rock_empty_2)
+        tin_2(rocks.tin_rock_2, empty_rocks.rock_empty_2)
+        iron_2(rocks.iron_rock_2, empty_rocks.rock_empty_2)
+        coal_2(rocks.coal_rock_2, empty_rocks.rock_empty_2)
+        silver_2(rocks.silver_rock_2, empty_rocks.rock_empty_2)
+        gold_2(rocks.gold_rock_2, empty_rocks.rock_empty_2)
+        mithril_2(rocks.mithril_rock_2, empty_rocks.rock_empty_2)
+        adamant_2(rocks.adamant_rock_2, empty_rocks.rock_empty_2)
+        rune_2(rocks.rune_rock_2, empty_rocks.rock_empty_2)
+        rock_empty_2(empty_rocks.rock_empty_2)
     }
 
     private fun copper_1(type: LocType, emptyRock: LocType) {
@@ -78,7 +87,37 @@ internal object MiningRocks : LocEditor() {
         }
     }
 
+    private fun tin_2(type: LocType, emptyRock: LocType) {
+        edit(type) {
+            contentGroup = content.mining_rock
+            param[params.deplete_chance] = 0
+            param[params.respawn_time] = 0
+            param[params.respawn_time_low] = 60
+            param[params.respawn_time_high] = 100
+            param[params.levelrequire] = 1
+            param[params.skill_xp] = PlayerStatMap.toFineXP(25.0).toInt()
+            param[params.skill_productitem] = objs.tin_ore
+            param[params.next_loc_stage] = emptyRock
+            param[success_rates] = pickaxe_enums.tin_rock_pickaxes
+        }
+    }
+
     private fun iron_1(type: LocType, emptyRock: LocType) {
+        edit(type) {
+            contentGroup = content.mining_rock
+            param[params.deplete_chance] = 0
+            param[params.respawn_time] = 0
+            param[params.respawn_time_low] = 60
+            param[params.respawn_time_high] = 100
+            param[params.levelrequire] = 1
+            param[params.skill_xp] = PlayerStatMap.toFineXP(25.0).toInt()
+            param[params.skill_productitem] = objs.iron_ore
+            param[params.next_loc_stage] = emptyRock
+            param[success_rates] = pickaxe_enums.iron_rock_pickaxes
+        }
+    }
+
+    private fun iron_2(type: LocType, emptyRock: LocType) {
         edit(type) {
             contentGroup = content.mining_rock
             param[params.deplete_chance] = 0
@@ -108,7 +147,37 @@ internal object MiningRocks : LocEditor() {
         }
     }
 
+    private fun coal_2(type: LocType, emptyRock: LocType) {
+        edit(type) {
+            contentGroup = content.mining_rock
+            param[params.deplete_chance] = 0
+            param[params.respawn_time] = 0
+            param[params.respawn_time_low] = 60
+            param[params.respawn_time_high] = 100
+            param[params.levelrequire] = 1
+            param[params.skill_xp] = PlayerStatMap.toFineXP(25.0).toInt()
+            param[params.skill_productitem] = objs.coal_ore
+            param[params.next_loc_stage] = emptyRock
+            param[success_rates] = pickaxe_enums.coal_rock_pickaxes
+        }
+    }
+
     private fun silver_1(type: LocType, emptyRock: LocType) {
+        edit(type) {
+            contentGroup = content.mining_rock
+            param[params.deplete_chance] = 0
+            param[params.respawn_time] = 0
+            param[params.respawn_time_low] = 60
+            param[params.respawn_time_high] = 100
+            param[params.levelrequire] = 1
+            param[params.skill_xp] = PlayerStatMap.toFineXP(25.0).toInt()
+            param[params.skill_productitem] = objs.silver_ore
+            param[params.next_loc_stage] = emptyRock
+            param[success_rates] = pickaxe_enums.silver_rock_pickaxes
+        }
+    }
+
+    private fun silver_2(type: LocType, emptyRock: LocType) {
         edit(type) {
             contentGroup = content.mining_rock
             param[params.deplete_chance] = 0
@@ -138,7 +207,37 @@ internal object MiningRocks : LocEditor() {
         }
     }
 
+    private fun gold_2(type: LocType, emptyRock: LocType) {
+        edit(type) {
+            contentGroup = content.mining_rock
+            param[params.deplete_chance] = 0
+            param[params.respawn_time] = 0
+            param[params.respawn_time_low] = 60
+            param[params.respawn_time_high] = 100
+            param[params.levelrequire] = 1
+            param[params.skill_xp] = PlayerStatMap.toFineXP(25.0).toInt()
+            param[params.skill_productitem] = objs.gold_ore
+            param[params.next_loc_stage] = emptyRock
+            param[success_rates] = pickaxe_enums.gold_rock_pickaxes
+        }
+    }
+
     private fun mithril_1(type: LocType, emptyRock: LocType) {
+        edit(type) {
+            contentGroup = content.mining_rock
+            param[params.deplete_chance] = 0
+            param[params.respawn_time] = 0
+            param[params.respawn_time_low] = 60
+            param[params.respawn_time_high] = 100
+            param[params.levelrequire] = 1
+            param[params.skill_xp] = PlayerStatMap.toFineXP(25.0).toInt()
+            param[params.skill_productitem] = objs.mithril_ore
+            param[params.next_loc_stage] = emptyRock
+            param[success_rates] = pickaxe_enums.mithril_rock_pickaxes
+        }
+    }
+
+    private fun mithril_2(type: LocType, emptyRock: LocType) {
         edit(type) {
             contentGroup = content.mining_rock
             param[params.deplete_chance] = 0
@@ -168,6 +267,21 @@ internal object MiningRocks : LocEditor() {
         }
     }
 
+    private fun adamant_2(type: LocType, emptyRock: LocType) {
+        edit(type) {
+            contentGroup = content.mining_rock
+            param[params.deplete_chance] = 0
+            param[params.respawn_time] = 0
+            param[params.respawn_time_low] = 60
+            param[params.respawn_time_high] = 100
+            param[params.levelrequire] = 1
+            param[params.skill_xp] = PlayerStatMap.toFineXP(25.0).toInt()
+            param[params.skill_productitem] = objs.adamant_ore
+            param[params.next_loc_stage] = emptyRock
+            param[success_rates] = pickaxe_enums.adamant_rock_pickaxes
+        }
+    }
+
     private fun rune_1(type: LocType, emptyRock: LocType) {
         edit(type) {
             contentGroup = content.mining_rock
@@ -183,7 +297,28 @@ internal object MiningRocks : LocEditor() {
         }
     }
 
+    private fun rune_2(type: LocType, emptyRock: LocType) {
+        edit(type) {
+            contentGroup = content.mining_rock
+            param[params.deplete_chance] = 0
+            param[params.respawn_time] = 0
+            param[params.respawn_time_low] = 60
+            param[params.respawn_time_high] = 100
+            param[params.levelrequire] = 1
+            param[params.skill_xp] = PlayerStatMap.toFineXP(25.0).toInt()
+            param[params.skill_productitem] = objs.rune_ore
+            param[params.next_loc_stage] = emptyRock
+            param[success_rates] = pickaxe_enums.rune_rock_pickaxes
+        }
+    }
+
     private fun rock_empty_1(type: LocType) {
+        edit(type){
+            contentGroup = content.mining_rock_empty
+        }
+    }
+
+    private fun rock_empty_2(type: LocType) {
         edit(type){
             contentGroup = content.mining_rock_empty
         }

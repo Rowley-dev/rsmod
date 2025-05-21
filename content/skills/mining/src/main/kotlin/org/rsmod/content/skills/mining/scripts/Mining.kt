@@ -12,6 +12,7 @@ import org.rsmod.api.config.refs.stats
 import org.rsmod.api.config.refs.synths
 import org.rsmod.api.config.refs.varcons
 import org.rsmod.api.controller.vars.intVarCon
+import org.rsmod.api.player.front
 import org.rsmod.api.player.output.ClientScripts
 import org.rsmod.api.player.protect.ProtectedAccess
 import org.rsmod.api.player.righthand
@@ -35,6 +36,7 @@ import org.rsmod.game.entity.Controller
 import org.rsmod.game.entity.Player
 import org.rsmod.game.loc.BoundLocInfo
 import org.rsmod.game.obj.InvObj
+import org.rsmod.game.obj.isType
 import org.rsmod.game.type.enums.EnumTypeList
 import org.rsmod.game.type.enums.find
 import org.rsmod.game.type.loc.LocType
@@ -146,6 +148,7 @@ constructor(
             if (mineRocks) {
                 val product = objTypes[type.rockOre]
                 val xp = type.rockXp * xpMods.get(player, stats.mining)
+                val chanceOfGem =
                 spam("You get some ${product.name.lowercase()}.")
                 statAdvance(stats.mining, xp)
                 invAdd(inv, product)
@@ -272,6 +275,7 @@ constructor(
                     return worn
                 }
                 return carried
+
             }
             return worn ?: carried
         }
@@ -295,6 +299,15 @@ constructor(
                 return fixed
             }
             return random.of(rockRespawnTimeLow, rockRespawnTimeHigh)
+        }
+
+        private fun UnpackedObjType.isAmuletOfGlory(): Boolean {
+            return isContentType(content.amulet_of_glory)
+        }
+
+        private fun Player.wornGlory(objTypes: ObjTypeList): Boolean? {
+            val necklace = front
+            return TODO("Provide the return value")
         }
 
         fun mineSuccessRates(
