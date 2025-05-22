@@ -3,6 +3,7 @@ package org.rsmod.api.net.rsprot.handlers
 import com.github.michaelbull.logging.InlineLogger
 import jakarta.inject.Inject
 import net.rsprot.protocol.game.incoming.locs.OpLocT
+import org.rsmod.api.net.rsprot.player.InterfaceEvents
 import org.rsmod.api.player.interact.LocTInteractions
 import org.rsmod.api.player.output.clearMapFlag
 import org.rsmod.api.player.protect.clearPendingAction
@@ -14,6 +15,7 @@ import org.rsmod.game.interact.InteractionLocT
 import org.rsmod.game.loc.BoundLocInfo
 import org.rsmod.game.movement.RouteRequestLoc
 import org.rsmod.game.type.comp.ComponentTypeList
+import org.rsmod.game.type.interf.IfEvent
 import org.rsmod.game.type.interf.InterfaceTypeList
 import org.rsmod.game.type.loc.LocTypeList
 import org.rsmod.game.type.obj.ObjTypeList
@@ -45,6 +47,7 @@ constructor(
         val loc = locRegistry.findType(coords, message.id)
         if (loc == null) {
             player.clearMapFlag()
+            player.clearPendingAction(eventBus)
             return
         }
         val type = locTypes[message.id] ?: return
@@ -55,13 +58,21 @@ constructor(
         val isValidInterface =
             player.ui.containsOverlay(interfaceType) || player.ui.containsModal(interfaceType)
         if (!isValidInterface) {
+            player.clearMapFlag()
+            player.clearPendingAction(eventBus)
             return
         }
 
-        // TODO: Once `if_setevent`s are tracked properly, we can ensure the component has the
-        // appropriate ifevent set for targeting.
-
         val comsub = message.selectedSub
+
+        val targetEnabled =
+            InterfaceEvents.isEnabled(player.ui, componentType, comsub, IfEvent.TgtLoc)
+        if (!targetEnabled) {
+            player.clearMapFlag()
+            player.clearPendingAction(eventBus)
+            return
+        }
+
         val speed = if (message.controlKey) player.ctrlMoveSpeed() else null
         val boundLoc = BoundLocInfo(loc, type)
         val opTrigger =
