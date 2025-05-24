@@ -54,3 +54,7 @@ include("content:areas:city:edgeville")
 findProject(":content:areas:city:edgeville")?.name = "edgeville"
 include("content:skills:mining")
 findProject(":content:skills:mining")?.name = "mining"
+include("content:interfaces:deposit-box")
+findProject(":content:interfaces:deposit-box")?.name = "deposit-box"
+include("content:generic:generic-objs")
+findProject(":content:generic:generic-objs")?.name = "generic-objs"

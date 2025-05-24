@@ -21,6 +21,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/api" />
             <option value="$PROJECT_DIR$/api/account" />
+            <option value="$PROJECT_DIR$/api/area-checker" />
             <option value="$PROJECT_DIR$/api/cache" />
             <option value="$PROJECT_DIR$/api/cache-enricher" />
             <option value="$PROJECT_DIR$/api/cheat" />
@@ -46,7 +47,6 @@
             <option value="$PROJECT_DIR$/api/invtx" />
             <option value="$PROJECT_DIR$/api/market" />
             <option value="$PROJECT_DIR$/api/meta" />
-            <option value="$PROJECT_DIR$/api/multiway" />
             <option value="$PROJECT_DIR$/api/net" />
             <option value="$PROJECT_DIR$/api/npc" />
             <option value="$PROJECT_DIR$/api/npc-plugin" />
@@ -101,6 +101,7 @@
             <option value="$PROJECT_DIR$/api/utils/utils-map" />
             <option value="$PROJECT_DIR$/api/utils/utils-skills" />
             <option value="$PROJECT_DIR$/api/utils/utils-system" />
+            <option value="$PROJECT_DIR$/api/utils/utils-time" />
             <option value="$PROJECT_DIR$/api/utils/utils-vars" />
             <option value="$PROJECT_DIR$/api/utils/utils-zone" />
             <option value="$PROJECT_DIR$/api/weapons" />
@@ -115,9 +116,11 @@
             <option value="$PROJECT_DIR$/content/generic" />
             <option value="$PROJECT_DIR$/content/generic/generic-locs" />
             <option value="$PROJECT_DIR$/content/generic/generic-npcs" />
+            <option value="$PROJECT_DIR$/content/generic/generic-objs" />
             <option value="$PROJECT_DIR$/content/interfaces" />
             <option value="$PROJECT_DIR$/content/interfaces/bank" />
             <option value="$PROJECT_DIR$/content/interfaces/combat-tab" />
+            <option value="$PROJECT_DIR$/content/interfaces/deposit-box" />
             <option value="$PROJECT_DIR$/content/interfaces/emotes" />
             <option value="$PROJECT_DIR$/content/interfaces/equipment" />
             <option value="$PROJECT_DIR$/content/interfaces/fade-overlay" />
@@ -156,7 +159,6 @@
             <option value="$PROJECT_DIR$/engine/routefinder" />
             <option value="$PROJECT_DIR$/engine/utils-bits" />
             <option value="$PROJECT_DIR$/engine/utils-sorting" />
-            <option value="$PROJECT_DIR$/engine/utils-time" />
             <option value="$PROJECT_DIR$/server" />
             <option value="$PROJECT_DIR$/server/app" />
             <option value="$PROJECT_DIR$/server/install" />

@@ -10,12 +10,17 @@ internal typealias bank_locs = BankLocs
 internal object BankLocs : LocReferences() {
     val bankbooth = find("aide_bankbooth")
     val bankbooth_multi = find("aide_bankbooth_multi")
+    val bankchest_fortis = find("fortis_bank_chest")
+    val bankchest_fortis_small = find("fortis_bank_chest_small")
+
 }
 
 internal object BankLocEditor : LocEditor() {
     init {
         booth(bank_locs.bankbooth)
         booth(bank_locs.bankbooth_multi)
+        booth(bank_locs.bankchest_fortis)
+        booth(bank_locs.bankchest_fortis_small)
     }
 
     private fun booth(type: LocType) {

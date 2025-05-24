@@ -12,6 +12,7 @@ object BaseInterfaces : InterfaceReferences() {
     val bank_main = find("bankmain", 479914382)
     val bank_side = find("bankside", 1999686874)
     val bankpin_settings = find("bankpin_settings", 642937557)
+    val bank_depositbox = find("bank_depositbox")
 
     val toplevel = find("toplevel", 9223372034726091525)
     val toplevel_osrs_stretch = find("toplevel_osrs_stretch", 9223372036366731764)

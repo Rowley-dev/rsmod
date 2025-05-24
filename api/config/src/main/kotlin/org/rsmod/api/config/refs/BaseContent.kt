@@ -60,4 +60,5 @@ object BaseContent : ContentReferences() {
     val chicken_coop = find("chicken_coop")
     val amulet_of_glory = find("amulet_of_glory")
     val town_crier = find("town_crier")
+    val deposit_box = find("deposit_box")
 }
